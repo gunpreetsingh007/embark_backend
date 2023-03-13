@@ -4,12 +4,14 @@ var bodyParser = require('body-parser');
 var port = 8085;
 var LogRoutes = require('./classes/route-logger');
 const path = require("path")
+const cors = require("cors")
 
 // models
 var models = require("./database/models");
 
 // routes
-var dashboardRoutes = require('./routes/dashboard.route');
+var hierarchyRoutes = require('./routes/hierarchy.route');
+var productRoutes = require("./routes/product.route");
 
 //Authenticate Database
 models.sequelize.authenticate().then(function () {
@@ -25,6 +27,8 @@ const init = async () => {
         extended: true
     }));
 
+    app.use(cors())
+
     app.use('/images', express.static(path.join(__dirname, "../images")));
     app.use(LogRoutes);
 
@@ -34,7 +38,8 @@ const init = async () => {
         res.send('App is running')
     });
 
-    app.use('/dashboard',dashboardRoutes);
+    app.use('/hierarchy',hierarchyRoutes);
+    app.use('/product',productRoutes);
 
 
     app.all('*', function (req, res) {
