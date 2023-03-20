@@ -13,16 +13,17 @@
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
+    "lodash.isequal": "^4.5.0",
     "mysql": "^2.15.0",
     "mysql2": "^1.7.0",
     "path": "^0.12.7",
     "pg": "^8.10.0",
     "sequelize": "^4.44.4",
     "winston": "^3.3.3",
-    "winston-daily-rotate-file": "^4.5.5",
-    "cors": "^2.8.5"
+    "winston-daily-rotate-file": "^4.5.5"
   },
   "devDependencies": {
     "nodemon": "^2.0.21",

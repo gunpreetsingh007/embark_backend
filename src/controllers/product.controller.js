@@ -1,5 +1,6 @@
 var Hierarchy = require('../database/models').Hierarchy;
 var Product = require("../database/models").Product
+var isEqual = require('lodash.isequal');
 
 
 const getProductsByHierarchies = async (req, res) => {
@@ -85,7 +86,8 @@ const getProductDetails = async (req, res) => {
                 id:req.params.id,
                 isActive: true,
                 isDeleted: false
-            }
+            },
+            exclude: ["createdAt", "updatedAt", "isDeleted","hierarchyId","isActive"]
         })
         if(!product)
         {
@@ -93,6 +95,41 @@ const getProductDetails = async (req, res) => {
         }
 
         return res.status(200).json({ statusCode: 200, data: product })
+    }
+    catch (err) {
+        return res.status(500).json({ "errorMessage": err.message })
+    }
+
+}
+
+const getProductsInCart = async (req, res) => {
+    try {
+        if ( !Array.isArray(req.body) && req.body.length == 0 ) {
+            return res.status(500).json({ "errorMessage": "Cart Items are required" })
+        }
+        let cartItems = req.body
+        let productIds = cartItems.map(item => item.productId)
+        let products = await Product.findAll({
+            where: {
+                id:productIds,
+                isActive: true,
+                isDeleted: false
+            },
+            exclude: ["createdAt", "updatedAt", "isDeleted","hierarchyId","isActive"]
+        })
+        if(products.length == 0)
+        {
+            return res.status(500).json({ "errorMessage": "No Products Found" })
+        }
+
+        cartItems = cartItems.map((item)=>{
+            let product = products.find((e)=> e.id == item.productId)
+            let selectedProduct = product.productDetails.find((e)=> isEqual(e.attributeCombination , item.attributeCombination))
+            item.productDetails = selectedProduct
+            return item
+        })
+
+        return res.status(200).json({ statusCode: 200, data: cartItems })
     }
     catch (err) {
         return res.status(500).json({ "errorMessage": err.message })
@@ -130,6 +167,7 @@ const getChildHierarchiesIds = async (hierarchyArray, index, hierarchyIdsArr) =>
 module.exports = {
     getProductsByHierarchies,
     getProductsByMajorHierarchy,
-    getProductDetails
+    getProductDetails,
+    getProductsInCart
 }
 

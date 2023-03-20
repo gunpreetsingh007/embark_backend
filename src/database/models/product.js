@@ -13,22 +13,10 @@ module.exports = function(sequelize, Sequelize) {
           type: Sequelize.TEXT, 
           allowNull: true
         },
-        productPrice: {
-          type: Sequelize.INTEGER,
+        productDetails: {
+          type: Sequelize.JSON,
           allowNull: false
-        },
-        productDiscountPrice: {
-         type: Sequelize.INTEGER,
-         allowNull: false
-        },
-        attributeCombination: {
-         type: Sequelize.JSON,
-         allowNull: false
-        },
-        pictureUrl: {
-         type: Sequelize.STRING,
-         allowNull: false
-        },
+         },
         rating: { 
           type: Sequelize.FLOAT, 
           defaultValue: 0.0

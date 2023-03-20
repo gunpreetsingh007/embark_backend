@@ -14,14 +14,9 @@ module.exports = function(sequelize, Sequelize) {
            as: 'userId'
          }
         },
-        addressId: { 
-         type: Sequelize.UUID, 
-         allowNull: false,
-         references: {
-           model: 'Addresses',
-           key: 'id',
-           as: 'addressId'
-         }
+        addressDetails: { 
+          type: Sequelize.JSON, 
+          allowNull: false
         },
         orderDetails: { 
           type: Sequelize.JSON, 
@@ -66,7 +61,6 @@ module.exports = function(sequelize, Sequelize) {
     });
     OrderSchema.associate = models => { 
         OrderSchema.belongsTo(models.User, { foreignKey: 'userId', });
-        OrderSchema.belongsTo(models.Address, { foreignKey: 'addressId', });
     }
     return OrderSchema;
 }
