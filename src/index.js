@@ -12,6 +12,8 @@ var models = require("./database/models");
 // routes
 var hierarchyRoutes = require('./routes/hierarchy.route');
 var productRoutes = require("./routes/product.route");
+var fileRoutes = require("./routes/files.route");
+var addProductRoutes = require("./routes/addProduct.route")
 
 //Authenticate Database
 models.sequelize.authenticate().then(function () {
@@ -40,6 +42,8 @@ const init = async () => {
 
     app.use('/hierarchy',hierarchyRoutes);
     app.use('/product',productRoutes);
+    app.use('/file',fileRoutes);
+    app.use('/addProduct',addProductRoutes);
 
 
     app.all('*', function (req, res) {

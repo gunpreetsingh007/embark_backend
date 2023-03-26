@@ -22,6 +22,10 @@ module.exports = function(sequelize, Sequelize) {
           type: Sequelize.JSON, 
           allowNull: false
         },
+        totalItems: {
+          type: Sequelize.INTEGER,
+          allowNull: false
+        },
         orderToken: { 
           type: Sequelize.STRING, 
           allowNull: false

@@ -126,6 +126,7 @@ const getProductsInCart = async (req, res) => {
             let product = products.find((e)=> e.id == item.productId)
             let selectedProduct = product.productDetails.find((e)=> isEqual(e.attributeCombination , item.attributeCombination))
             item.productDetails = selectedProduct
+            item.productName = product.productName
             return item
         })
 
