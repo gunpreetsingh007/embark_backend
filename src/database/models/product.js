@@ -25,6 +25,14 @@ module.exports = function(sequelize, Sequelize) {
           type: Sequelize.JSON,
           allowNull: false
          },
+        fragranceId: {
+          type: Sequelize.UUID, 
+          allowNull: false,
+          references: {
+            model: 'Fragrances',
+            key: 'id'
+          }
+        },
         rating: { 
           type: Sequelize.FLOAT, 
           defaultValue: 0.0
@@ -41,6 +49,10 @@ module.exports = function(sequelize, Sequelize) {
            key: 'id',
            as: 'hierarchyId'
          }
+        },
+        isGiftSetBox: { 
+          type: Sequelize.BOOLEAN, 
+          defaultValue: false
         },
         createdAt: { 
           type: Sequelize.DATE, 
