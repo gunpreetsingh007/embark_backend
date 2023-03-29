@@ -23,7 +23,7 @@ module.exports = function(sequelize, Sequelize) {
          },
         fragranceId: {
           type: Sequelize.UUID, 
-          allowNull: false,
+          allowNull: true,
           references: {
             model: 'Fragrances',
             key: 'id'
