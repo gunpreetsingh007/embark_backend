@@ -13,10 +13,6 @@ module.exports = function(sequelize, Sequelize) {
           type: Sequelize.TEXT, 
           allowNull: true
         },
-        productDescriptionImages: {
-          type: Sequelize.JSON,
-          allowNull: false
-         },
         noteStory: {
           type: Sequelize.JSON,
           allowNull: false
