@@ -16,7 +16,8 @@ const getProductsByHierarchies = async (req, res) => {
                 isActive: true,
                 isDeleted: false
             },
-            exclude: ["createdAt", "updatedAt", "isDeleted","hierarchyId","isActive"]
+            exclude: ["createdAt", "updatedAt", "isDeleted","hierarchyId","isActive"],
+            raw: true
         })
         return res.status(200).json({ "statusCode": 200, data: products })
     }
@@ -59,16 +60,28 @@ const getProductsByMajorHierarchy = async (req, res) => {
            hierarchyIds = [ ...hierarchyIds, ...await getChildHierarchiesIds(childHierarchies, i, [])]
         }
 
+        let result = []
+
         let products = await Product.findAll({
             where: {
                 hierarchyId: hierarchyIds,
                 isActive: true,
                 isDeleted: false
             },
-            exclude: ["createdAt", "updatedAt", "isDeleted","hierarchyId","isActive"]
+            exclude: ["createdAt", "updatedAt", "isDeleted","hierarchyId","isActive"],
+            raw: true
         })
 
-        return res.status(200).json({ statusCode: 200, data: products })
+        products.forEach((product) => {
+            product.productDetails.forEach((productDetailElement) => {
+                result.push({
+                    ...product,
+                    productDetails: productDetailElement
+                });
+            });
+        });
+
+        return res.status(200).json({ statusCode: 200, data: result })
     }
     catch (err) {
         return res.status(500).json({ "errorMessage": err.message })
@@ -87,7 +100,8 @@ const getProductDetails = async (req, res) => {
                 isActive: true,
                 isDeleted: false
             },
-            exclude: ["createdAt", "updatedAt", "isDeleted","hierarchyId","isActive"]
+            exclude: ["createdAt", "updatedAt", "isDeleted","hierarchyId","isActive"],
+            raw: true
         })
         if(!product)
         {
@@ -115,7 +129,8 @@ const getProductsInCart = async (req, res) => {
                 isActive: true,
                 isDeleted: false
             },
-            exclude: ["createdAt", "updatedAt", "isDeleted","hierarchyId","isActive"]
+            exclude: ["createdAt", "updatedAt", "isDeleted","hierarchyId","isActive"],
+            raw: true
         })
         if(products.length == 0)
         {

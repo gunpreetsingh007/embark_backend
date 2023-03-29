@@ -8,7 +8,8 @@ const getMajorCategories = async (req, res) => {
                 parentId: null,
                 isDeleted: false
             },
-            attributes: ["id", "hierarchyName"]
+            attributes: ["id", "hierarchyName"],
+            raw: true
         })
         return res.status(200).json({ "statusCode": 200, data: majorCategories })
     }
