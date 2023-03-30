@@ -12,8 +12,13 @@ var models = require("./database/models");
 // routes
 var hierarchyRoutes = require('./routes/hierarchy.route');
 var productRoutes = require("./routes/product.route");
+var authRoutes = require("./routes/auth.route");
+var userRoutes = require("./routes/user.route");
 var fileRoutes = require("./routes/files.route");
 var addProductRoutes = require("./routes/addProduct.route")
+
+// middlewares
+var { validateToken } = require('./middlewares/jwt')
 
 //Authenticate Database
 models.sequelize.authenticate().then(function () {
@@ -40,8 +45,10 @@ const init = async () => {
         res.send('App is running')
     });
 
-    app.use('/hierarchy',hierarchyRoutes);
-    app.use('/product',productRoutes);
+    app.use('/hierarchy', hierarchyRoutes);
+    app.use('/product', productRoutes);
+    app.use('/auth', authRoutes);
+    app.use('/user', validateToken, userRoutes)
     app.use('/file',fileRoutes);
     app.use('/addProduct',addProductRoutes);
 
