@@ -1,5 +1,5 @@
 var Hierarchy = require('../database/models').Hierarchy;
-
+var Fragrance = require('../database/models').Fragrance;
 
 const getMajorCategories = async (req, res) => {
     try {
@@ -18,22 +18,21 @@ const getMajorCategories = async (req, res) => {
     }
 }
 
-const getHierarchyTreeByRootName = async (req, res) => {
+const getHierarchyTreeById = async (req, res) => {
     try {
-        if (!req.params.name) {
-            return res.status(500).json({ "errorMessage": "No Name provided" })
+        if (!req.params.id) {
+            return res.status(500).json({ "errorMessage": "No Id provided" })
         }
         let selectedHierarchy = await Hierarchy.findOne({
             where: {
-                hierarchyName: req.params.name,
-                parentId: null,
+                id: req.params.id,
                 isDeleted: false
             },
             attributes: ["id", "hierarchyName"],
             raw: true
         })
         if (!selectedHierarchy) {
-            return res.status(500).json({ "errorMessage": "Wrong Name provided" })
+            return res.status(500).json({ "errorMessage": "Wrong Id provided" })
         }
         let childHierarchies = await Hierarchy.findAll({
             where: {
@@ -50,9 +49,16 @@ const getHierarchyTreeByRootName = async (req, res) => {
             await getChildHierarchies(childHierarchies, i)
         }
 
-        return res.status(200).json({ statusCode: 200, data: childHierarchies })
+        let result = {
+            "key": selectedHierarchy.hierarchyName,
+            "value": selectedHierarchy.hierarchyName,
+            "label": selectedHierarchy.hierarchyName,
+            "children": childHierarchies
+        }
+        return res.status(200).json({ statusCode: 200, data: result })
     }
     catch (err) {
+        console.log(err)
         return res.status(500).json({ "errorMessage": "Something Went Wrong" })
     }
 
@@ -68,9 +74,53 @@ const getChildHierarchies = async (hierarchyArray, index) => {
         attributes: ["id", "hierarchyName"],
         raw: true
     })
-    hierarchyArray[index].child = hierarchies
-    for (let i = 0; i < hierarchyArray[index].child.length; i++) {
-        await getChildHierarchies(hierarchyArray[index].child, i)
+    hierarchyArray[index].children = hierarchies
+    hierarchyArray[index].key = hierarchyArray[index].hierarchyName
+    hierarchyArray[index].label = hierarchyArray[index].hierarchyName
+    hierarchyArray[index].title = hierarchyArray[index].hierarchyName
+    for (let i = 0; i < hierarchyArray[index].children.length; i++) {
+        await getChildHierarchies(hierarchyArray[index].children, i)
+    }
+
+}
+
+const getHierarchyDetailsById = async (req,res) => {
+
+    try {
+        if (!req.params.id) {
+            return res.status(500).json({ "errorMessage": "No Id provided" })
+        }
+        let selectedHierarchy = await Hierarchy.findOne({
+            where: {
+                id: req.params.id,
+                isDeleted: false
+            },
+            attributes: ["id", "hierarchyName"],
+            raw: true
+        })
+
+        return res.status(200).json({ statusCode: 200, data: selectedHierarchy })
+    }
+    catch (err) {
+        return res.status(500).json({ "errorMessage": "Something Went Wrong" })
+    }
+    
+}
+
+const getAllFragrances = async (req,res) => {
+
+    try {
+        let allFragrances = await Fragrance.findAll({
+            attributes: ["id","fragranceName","fragrancePictureUrl"],
+            order: [["orderIndex"]],
+            raw: true
+        })
+        
+        return res.status(200).json({ statusCode: 200, data: allFragrances })
+    }
+    catch (err) {
+        console.log(err)
+        return res.status(500).json({ "errorMessage": "Something Went Wrong" })
     }
 
 }
@@ -79,6 +129,8 @@ const getChildHierarchies = async (hierarchyArray, index) => {
 
 module.exports = {
     getMajorCategories,
-    getHierarchyTreeByRootName
+    getHierarchyTreeById,
+    getHierarchyDetailsById,
+    getAllFragrances
 }
 

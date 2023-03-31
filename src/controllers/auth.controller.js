@@ -21,6 +21,7 @@ const login = async (req, res) => {
         }
     }
     catch (error) {
+        console.log(error)
         return res.status(500).json({ "errorMessage": "Something Went Wrong" })
     }
 }
@@ -48,6 +49,7 @@ const createUser = async (req, res) => {
         const accessToken = createToken(user)
         return res.status(200).json({ "statusCode": 200, "message": "User registration complete", accessToken, id: user.id, username: user.username })
     } catch (error) {
+        console.log(error)
         return res.status(500).json({ "errorMessage": "Something Went Wrong" })
     }
 }

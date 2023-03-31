@@ -58,23 +58,6 @@ const chooseProductAttribute = async (req,res) => {
 
 }
 
-const getAllFragrances = async (req,res) => {
-
-    try {
-        let allFragrances = await Fragrance.findAll({
-            attributes: ["id","fragranceName","fragrancePictureUrl"],
-            order: [["orderIndex"]],
-            raw: true
-        })
-        
-        return res.status(200).json({ statusCode: 200, data: allFragrances })
-    }
-    catch (err) {
-        return res.status(500).json({ "errorMessage": "Something Went Wrong" })
-    }
-
-}
-
 const getChildHierarchiesName = async (hierarchies, path=null) => {
     let result = []
 
@@ -108,7 +91,6 @@ const getChildHierarchiesName = async (hierarchies, path=null) => {
 module.exports = {
     addProduct,
     chooseHierarchyInAddProduct,
-    chooseProductAttribute,
-    getAllFragrances
+    chooseProductAttribute
 }
 

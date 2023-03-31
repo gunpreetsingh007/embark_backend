@@ -10,6 +10,7 @@ const getProductsByHierarchies = async (req, res) => {
             return res.status(500).json({ "errorMessage": "Hierarchy Ids are not provided" })
         }
         let hierarchies = hierarchy.split(",")
+        let result = []
         let products = await Product.findAll({
             where: {
                 hierarchyId: hierarchies,
@@ -19,7 +20,18 @@ const getProductsByHierarchies = async (req, res) => {
             exclude: ["createdAt", "updatedAt", "isDeleted","hierarchyId","isActive"],
             raw: true
         })
-        return res.status(200).json({ "statusCode": 200, data: products })
+
+        products.forEach((product) => {
+            product.productDetails.forEach((productDetailElement) => {
+                productDetailElement.attributeNumericValue = parseInt(Object.values(productDetailElement.attributeCombination)[0]?.match(/(\d+)/) || "0")
+                result.push({
+                    ...product,
+                    productDetails: productDetailElement
+                });
+            });
+        });
+
+        return res.status(200).json({ "statusCode": 200, data: result })
     }
     catch (err) {
         return res.status(500).json({ "errorMessage": "Something Went Wrong" })
@@ -28,20 +40,19 @@ const getProductsByHierarchies = async (req, res) => {
 
 const getProductsByMajorHierarchy = async (req, res) => {
     try {
-        if (!req.params.name) {
-            return res.status(500).json({ "errorMessage": "No Name provided" })
+        if (!req.params.id) {
+            return res.status(500).json({ "errorMessage": "No Id provided" })
         }
         let selectedHierarchy = await Hierarchy.findOne({
             where: {
-                hierarchyName: req.params.name,
-                parentId: null,
+                id: req.params.id,
                 isDeleted: false
             },
             attributes: ["id", "hierarchyName"],
             raw: true
         })
         if (!selectedHierarchy) {
-            return res.status(500).json({ "errorMessage": "Wrong Name provided" })
+            return res.status(500).json({ "errorMessage": "Wrong Id provided" })
         }
         let hierarchyIds = []
         let childHierarchies = await Hierarchy.findAll({
@@ -74,6 +85,7 @@ const getProductsByMajorHierarchy = async (req, res) => {
 
         products.forEach((product) => {
             product.productDetails.forEach((productDetailElement) => {
+                productDetailElement.attributeNumericValue = parseInt(Object.values(productDetailElement.attributeCombination)[0]?.match(/(\d+)/) || "0")
                 result.push({
                     ...product,
                     productDetails: productDetailElement
@@ -84,7 +96,8 @@ const getProductsByMajorHierarchy = async (req, res) => {
         return res.status(200).json({ statusCode: 200, data: result })
     }
     catch (err) {
-        return res.status(500).json({ "errorMessage": err.message })
+        console.log(err)
+        return res.status(500).json({ "errorMessage": "Something went wrong" })
     }
 
 }
@@ -111,7 +124,7 @@ const getProductDetails = async (req, res) => {
         return res.status(200).json({ statusCode: 200, data: product })
     }
     catch (err) {
-        return res.status(500).json({ "errorMessage": err.message })
+        return res.status(500).json({ "errorMessage": "Something went wrong" })
     }
 
 }
@@ -139,8 +152,7 @@ const getProductsInCart = async (req, res) => {
 
         cartItems = cartItems.map((item)=>{
             let product = products.find((e)=> e.id == item.productId)
-            let selectedProduct = product.productDetails.find((e)=> isEqual(e.attributeCombination , item.attributeCombination))
-            item.productDetails = selectedProduct
+            item.productDetails = product.productDetails
             item.productName = product.productName
             return item
         })
@@ -148,7 +160,7 @@ const getProductsInCart = async (req, res) => {
         return res.status(200).json({ statusCode: 200, data: cartItems })
     }
     catch (err) {
-        return res.status(500).json({ "errorMessage": err.message })
+        return res.status(500).json({ "errorMessage": "Something went wrong" })
     }
 
 }
@@ -178,12 +190,50 @@ const getChildHierarchiesIds = async (hierarchyArray, index, hierarchyIdsArr) =>
 
 }
 
+const getProductsByFragrance = async (req, res) => {
+    try {
+        if (!req.params.id) {
+            return res.status(500).json({ "errorMessage": "No Id provided" })
+        }
+
+        let result = []
+        let products = await Product.findAll({
+            where: {
+                fragranceId: req.params.id,
+                isActive: true,
+                isDeleted: false
+            },
+            exclude: ["createdAt", "updatedAt", "isDeleted","hierarchyId","isActive"],
+            raw: true
+        })
+     
+        if (products.length == 0) {
+            return res.status(500).json({ "errorMessage": "No Products found" })
+        }
+
+        products.forEach((product) => {
+            product.productDetails.forEach((productDetailElement) => {
+                productDetailElement.attributeNumericValue = parseInt(Object.values(productDetailElement.attributeCombination)[0]?.match(/(\d+)/) || "0")
+                result.push({
+                    ...product,
+                    productDetails: productDetailElement
+                });
+            });
+        });
+
+        return res.status(200).json({ statusCode: 200, data: result })
+    }
+    catch (err) {
+        return res.status(500).json({ "errorMessage": "Something went wrong" })
+    }
+}
 
 
 module.exports = {
     getProductsByHierarchies,
     getProductsByMajorHierarchy,
     getProductDetails,
-    getProductsInCart
+    getProductsInCart,
+    getProductsByFragrance
 }
 
