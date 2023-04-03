@@ -49,13 +49,7 @@ const getHierarchyTreeById = async (req, res) => {
             await getChildHierarchies(childHierarchies, i)
         }
 
-        let result = {
-            "key": selectedHierarchy.hierarchyName,
-            "value": selectedHierarchy.hierarchyName,
-            "label": selectedHierarchy.hierarchyName,
-            "children": childHierarchies
-        }
-        return res.status(200).json({ statusCode: 200, data: result })
+        return res.status(200).json({ statusCode: 200, data: childHierarchies })
     }
     catch (err) {
         console.log(err)
@@ -75,7 +69,7 @@ const getChildHierarchies = async (hierarchyArray, index) => {
         raw: true
     })
     hierarchyArray[index].children = hierarchies
-    hierarchyArray[index].key = hierarchyArray[index].hierarchyName
+    hierarchyArray[index].key = hierarchyArray[index].id
     hierarchyArray[index].label = hierarchyArray[index].hierarchyName
     hierarchyArray[index].title = hierarchyArray[index].hierarchyName
     for (let i = 0; i < hierarchyArray[index].children.length; i++) {
