@@ -1,6 +1,6 @@
 var Hierarchy = require('../database/models').Hierarchy;
 var Product = require("../database/models").Product
-var isEqual = require('lodash.isequal');
+const sequelize = require("sequelize")
 
 
 const getProductsByHierarchies = async (req, res) => {
@@ -208,7 +208,7 @@ const getProductsByFragrance = async (req, res) => {
         })
      
         if (products.length == 0) {
-            return res.status(500).json({ "errorMessage": "No Products found" })
+            return res.status(200).json({ statusCode: 200, data: [] })
         }
 
         products.forEach((product) => {
@@ -228,12 +228,58 @@ const getProductsByFragrance = async (req, res) => {
     }
 }
 
+const searchProducts = async (req, res) => {
+    try {
+        if (!req.query.q) {
+            return res.status(500).json({ "errorMessage": "No Search Query Parameter Provided" })
+        }
+
+        let result = []
+        let products = await Product.findAll({
+            where: {
+                $or: [
+                    sequelize.where(sequelize.col('productName'), 'LIKE', `%${req.query.q}%`),
+                    sequelize.where(sequelize.col('Hierarchy.hierarchyName'), 'LIKE', `%${req.query.q}%`)
+                ],
+                isActive: true,
+                isDeleted: false
+            },
+            include: [{
+                model: Hierarchy,
+                attributes: ["hierarchyName"]
+            }],
+            exclude: ["createdAt", "updatedAt", "isDeleted","hierarchyId","isActive"],
+            raw: true
+        })
+     
+        if (products.length == 0) {
+            return res.status(200).json({ statusCode: 200, data: [] })
+        }
+
+        products.forEach((product) => {
+            product.productDetails.forEach((productDetailElement) => {
+                productDetailElement.attributeNumericValue = parseInt(Object.values(productDetailElement.attributeCombination)[0]?.match(/(\d+)/) || "0")
+                result.push({
+                    ...product,
+                    productDetails: productDetailElement
+                });
+            });
+        });
+
+        return res.status(200).json({ statusCode: 200, data: result })
+    }
+    catch (err) {
+        console.log(err)
+        return res.status(500).json({ "errorMessage": "Something went wrong" })
+    }
+}
 
 module.exports = {
     getProductsByHierarchies,
     getProductsByMajorHierarchy,
     getProductDetails,
     getProductsInCart,
-    getProductsByFragrance
+    getProductsByFragrance,
+    searchProducts
 }
 
