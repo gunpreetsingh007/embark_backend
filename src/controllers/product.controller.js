@@ -1,6 +1,8 @@
 var Hierarchy = require('../database/models').Hierarchy;
 var Product = require("../database/models").Product
-const sequelize = require("sequelize")
+var Fragrance = require("../database/models").Fragrance
+const sequelize = require("sequelize");
+var ProductsOrderIndex = require('../database/models').ProductsOrderIndex;
 
 
 const getProductsByHierarchies = async (req, res) => {
@@ -14,22 +16,27 @@ const getProductsByHierarchies = async (req, res) => {
         let products = await Product.findAll({
             where: {
                 hierarchyId: hierarchies,
-                isActive: true,
                 isDeleted: false
             },
-            exclude: ["createdAt", "updatedAt", "isDeleted","hierarchyId","isActive"],
+            exclude: ["createdAt", "updatedAt", "isDeleted","hierarchyId"],
             raw: true
         })
+
+        let orderIndexRes = await ProductsOrderIndex.findOne()
+        orderIndexRes = orderIndexRes.productsOrderJson
 
         products.forEach((product) => {
             product.productDetails.forEach((productDetailElement) => {
                 productDetailElement.attributeNumericValue = parseInt(Object.values(productDetailElement.attributeCombination)[0]?.match(/(\d+)/) || "0")
+                productDetailElement.orderIndex = orderIndexRes?.[product.id]?.[productDetailElement.id] || 0
                 result.push({
                     ...product,
                     productDetails: productDetailElement
                 });
             });
         });
+
+        result.sort((a, b) => (a.productDetails.orderIndex - b.productDetails.orderIndex) || (b.createdAt - a.createdAt))
 
         return res.status(200).json({ "statusCode": 200, data: result })
     }
@@ -76,22 +83,27 @@ const getProductsByMajorHierarchy = async (req, res) => {
         let products = await Product.findAll({
             where: {
                 hierarchyId: hierarchyIds,
-                isActive: true,
                 isDeleted: false
             },
-            exclude: ["createdAt", "updatedAt", "isDeleted","hierarchyId","isActive"],
+            exclude: ["createdAt", "updatedAt", "isDeleted","hierarchyId"],
             raw: true
         })
+
+        let orderIndexRes = await ProductsOrderIndex.findOne()
+        orderIndexRes = orderIndexRes.productsOrderJson
 
         products.forEach((product) => {
             product.productDetails.forEach((productDetailElement) => {
                 productDetailElement.attributeNumericValue = parseInt(Object.values(productDetailElement.attributeCombination)[0]?.match(/(\d+)/) || "0")
+                productDetailElement.orderIndex = orderIndexRes?.[product.id]?.[productDetailElement.id] || 0
                 result.push({
                     ...product,
                     productDetails: productDetailElement
                 });
             });
         });
+
+        result.sort((a, b) => (a.productDetails.orderIndex - b.productDetails.orderIndex) || (b.createdAt - a.createdAt))
 
         return res.status(200).json({ statusCode: 200, data: result })
     }
@@ -110,10 +122,17 @@ const getProductDetails = async (req, res) => {
         let product = await Product.findOne({
             where: {
                 id:req.params.id,
-                isActive: true,
                 isDeleted: false
             },
-            exclude: ["createdAt", "updatedAt", "isDeleted","hierarchyId","isActive"],
+            include: [{
+                model: Hierarchy,
+                attributes: ["hierarchyName", "id"]
+            },
+            {
+                model: Fragrance,
+                attributes: ["fragranceName", "id"]
+            }],
+            exclude: ["createdAt", "updatedAt", "isDeleted","hierarchyId"],
             raw: true
         })
         if(!product)
@@ -200,10 +219,9 @@ const getProductsByFragrance = async (req, res) => {
         let products = await Product.findAll({
             where: {
                 fragranceId: req.params.id,
-                isActive: true,
                 isDeleted: false
             },
-            exclude: ["createdAt", "updatedAt", "isDeleted","hierarchyId","isActive"],
+            exclude: ["createdAt", "updatedAt", "isDeleted","hierarchyId"],
             raw: true
         })
      
@@ -211,15 +229,21 @@ const getProductsByFragrance = async (req, res) => {
             return res.status(200).json({ statusCode: 200, data: [] })
         }
 
+        let orderIndexRes = await ProductsOrderIndex.findOne()
+        orderIndexRes = orderIndexRes.productsOrderJson
+
         products.forEach((product) => {
             product.productDetails.forEach((productDetailElement) => {
                 productDetailElement.attributeNumericValue = parseInt(Object.values(productDetailElement.attributeCombination)[0]?.match(/(\d+)/) || "0")
+                productDetailElement.orderIndex = orderIndexRes?.[product.id]?.[productDetailElement.id] || 0
                 result.push({
                     ...product,
                     productDetails: productDetailElement
                 });
             });
         });
+
+        result.sort((a, b) => (a.productDetails.orderIndex - b.productDetails.orderIndex) || (b.createdAt - a.createdAt))
 
         return res.status(200).json({ statusCode: 200, data: result })
     }
@@ -238,17 +262,17 @@ const searchProducts = async (req, res) => {
         let products = await Product.findAll({
             where: {
                 $or: [
-                    sequelize.where(sequelize.col('productName'), 'LIKE', `%${req.query.q}%`),
-                    sequelize.where(sequelize.col('Hierarchy.hierarchyName'), 'LIKE', `%${req.query.q}%`)
+                    sequelize.where(sequelize.col('productName'), 'REGEXP', `${req.query.q.split(" ").join("|")}`),
+                    sequelize.where(sequelize.col('productDescription'), 'REGEXP', `${req.query.q.split(" ").join("|")}`),
+                    sequelize.where(sequelize.col('Hierarchy.hierarchyName'), 'REGEXP', `${req.query.q.split(" ").join("|")}`)
                 ],
-                isActive: true,
                 isDeleted: false
             },
             include: [{
                 model: Hierarchy,
                 attributes: ["hierarchyName"]
             }],
-            exclude: ["createdAt", "updatedAt", "isDeleted","hierarchyId","isActive"],
+            exclude: ["createdAt", "updatedAt", "isDeleted","hierarchyId"],
             raw: true
         })
      
@@ -256,9 +280,13 @@ const searchProducts = async (req, res) => {
             return res.status(200).json({ statusCode: 200, data: [] })
         }
 
+        let orderIndexRes = await ProductsOrderIndex.findOne()
+        orderIndexRes = orderIndexRes.productsOrderJson
+
         products.forEach((product) => {
             product.productDetails.forEach((productDetailElement) => {
                 productDetailElement.attributeNumericValue = parseInt(Object.values(productDetailElement.attributeCombination)[0]?.match(/(\d+)/) || "0")
+                productDetailElement.orderIndex = orderIndexRes?.[product.id]?.[productDetailElement.id] || 0
                 result.push({
                     ...product,
                     productDetails: productDetailElement
@@ -266,10 +294,159 @@ const searchProducts = async (req, res) => {
             });
         });
 
+        result.sort((a, b) => (a.productDetails.orderIndex - b.productDetails.orderIndex) || (b.createdAt - a.createdAt))
+
         return res.status(200).json({ statusCode: 200, data: result })
     }
     catch (err) {
         console.log(err)
+        return res.status(500).json({ "errorMessage": "Something went wrong" })
+    }
+}
+
+const getAllProducts = async (req, res) => {
+    try {
+
+        let result = []
+        let products = await Product.findAll({
+            exclude: ["updatedAt", "isDeleted"],
+            raw: true
+        })
+     
+        if (products.length == 0) {
+            return res.status(200).json({ statusCode: 200, data: [] })
+        }
+
+        let orderIndexRes = await ProductsOrderIndex.findOne()
+        orderIndexRes = orderIndexRes.productsOrderJson
+
+        products.forEach((product) => {
+            product.productDetails.forEach((productDetailElement) => {
+                productDetailElement.attributeNumericValue = parseInt(Object.values(productDetailElement.attributeCombination)[0]?.match(/(\d+)/) || "0")
+                productDetailElement.orderIndex = orderIndexRes?.[product.id]?.[productDetailElement.id] || 0
+                result.push({
+                    ...product,
+                    productDetails: productDetailElement
+                });
+            });
+        });
+
+        result.sort((a, b) => (a.productDetails.orderIndex - b.productDetails.orderIndex) || (b.createdAt - a.createdAt))
+
+        return res.status(200).json({ statusCode: 200, data: result })
+    }
+    catch (err) {
+        return res.status(500).json({ "errorMessage": "Something went wrong" })
+    }
+}
+
+const editProductAttributeColumn = async (req, res) => {
+    try {
+
+        let {productId, productAttributeId, columnName, flag} = req.body
+     
+        if (!productId || !productAttributeId || !columnName || (!["isActive", "bestSellerStatus", "isNew"].includes(columnName) ) || typeof flag != "boolean" ) {
+            return res.status(500).json({ "errorMessage": "Missing Or Invalid Parameters" })
+        }
+
+        let product = await Product.findOne({
+            where: {
+                id: productId
+            },
+            attributes: ["id", "productDetails"],
+            raw: true
+        })
+
+        if(!product){
+            return res.status(500).json({ "errorMessage": "Invalid Product Id" })
+        }
+
+        let productAttributeFound = false
+        let isTrueElementPresent = false
+
+        product.productDetails.map((productDetailElement) => {
+            if(productDetailElement.id == productAttributeId){
+                productAttributeFound = true
+                productDetailElement[columnName] = flag
+            }
+            if(productDetailElement[columnName]){
+                isTrueElementPresent = true
+            }
+        });
+
+        let obj = {
+            productDetails: product.productDetails
+        }
+
+        obj[columnName] = isTrueElementPresent
+
+        if(productAttributeFound){
+            let updatedProduct = await Product.update(obj,{
+                where: {
+                    id: product.id
+                }
+            })
+        }
+       
+        return res.status(200).json({ statusCode: 200, data: "success" })
+    }
+    catch (err) {
+        return res.status(500).json({ "errorMessage": "Something went wrong" })
+    }
+}
+
+const saveOrderOfProducts = async (req, res) => {
+    try {
+
+        let { payload } = req.body
+     
+        if (!payload || typeof payload != "object" ) {
+            return res.status(500).json({ "errorMessage": "Invalid Payload" })
+        }
+
+        // let finalResult = {}
+
+        // let allProducts = await Product.findAll();
+
+        // for(let productId in payload){
+
+        //     let product = allProducts.find((p)=> p.id == productId)
+        //     if(!product){
+        //         continue
+        //     }
+
+        //     product.productDetails.map((productDetailElement) => {
+        //         if(payload[productId][productDetailElement.id]){
+        //             if(finalResult[productId]){
+        //                 finalResult[productId][productDetailElement.id] = payload[productId][productDetailElement.id]
+        //             }
+        //             else{
+        //                 finalResult[productId] = {}
+        //                 finalResult[productId][productDetailElement.id] = payload[productId][productDetailElement.id]
+        //             }
+        //         }
+        //         return productDetailElement
+        //     });
+
+        // }
+
+        let productsOrderIndexes = await ProductsOrderIndex.findOne()
+        if(!productsOrderIndexes){
+            await ProductsOrderIndex.create({
+                productsOrderJson: payload
+            })
+        }
+        else{
+            await ProductsOrderIndex.update({
+                productsOrderJson: payload
+            }, {where: {
+
+            }})
+        }
+       
+        return res.status(200).json({ statusCode: 200, data: "success" })
+    }
+    catch (err) {
         return res.status(500).json({ "errorMessage": "Something went wrong" })
     }
 }
@@ -280,6 +457,9 @@ module.exports = {
     getProductDetails,
     getProductsInCart,
     getProductsByFragrance,
-    searchProducts
+    searchProducts,
+    getAllProducts,
+    editProductAttributeColumn,
+    saveOrderOfProducts
 }
 

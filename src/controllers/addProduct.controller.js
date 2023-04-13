@@ -1,13 +1,33 @@
 var Hierarchy = require('../database/models').Hierarchy;
 var ProductAttributes = require('../database/models').ProductAttribute;
 var Product = require("../database/models").Product
-var Fragrance = require("../database/models").Fragrance
 
 const addProduct = async (req, res) => {
 
     try {
         
         let newProduct = await Product.create(req.body);
+        
+        return res.status(200).json({ statusCode: 200, data: newProduct })
+    }
+    catch (err) {
+        return res.status(500).json({ "errorMessage": "Something Went Wrong" })
+    }
+
+}
+
+const updateProduct = async (req, res) => {
+
+    try {
+
+        let id = req.body.id
+        delete req.body.id
+        
+        let newProduct = await Product.update(req.body, {
+            where: {
+                id
+            }
+        });
         
         return res.status(200).json({ statusCode: 200, data: newProduct })
     }
@@ -90,6 +110,7 @@ const getChildHierarchiesName = async (hierarchies, path=null) => {
 
 module.exports = {
     addProduct,
+    updateProduct,
     chooseHierarchyInAddProduct,
     chooseProductAttribute
 }

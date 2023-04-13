@@ -50,6 +50,14 @@ module.exports = function(sequelize, Sequelize) {
           type: Sequelize.BOOLEAN, 
           defaultValue: false
         },
+        bestSellerStatus: { 
+          type: Sequelize.BOOLEAN, 
+          defaultValue: false
+        },
+        isNew: { 
+          type: Sequelize.BOOLEAN, 
+          defaultValue: false
+        },
         createdAt: { 
           type: Sequelize.DATE, 
           allowNull: true 
@@ -65,6 +73,7 @@ module.exports = function(sequelize, Sequelize) {
     });
     ProductSchema.associate = models => { 
         ProductSchema.belongsTo(models.Hierarchy, { foreignKey: 'hierarchyId', });
+        ProductSchema.belongsTo(models.Fragrance, { foreignKey: 'fragranceId', });
         ProductSchema.hasMany(models.Review, { foreignKey: 'productId', });
     }
     return ProductSchema;
