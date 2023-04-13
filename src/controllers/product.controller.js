@@ -22,21 +22,7 @@ const getProductsByHierarchies = async (req, res) => {
             raw: true
         })
 
-        let orderIndexRes = await ProductsOrderIndex.findOne()
-        orderIndexRes = orderIndexRes.productsOrderJson
-
-        products.forEach((product) => {
-            product.productDetails.forEach((productDetailElement) => {
-                productDetailElement.attributeNumericValue = parseInt(Object.values(productDetailElement.attributeCombination)[0]?.match(/(\d+)/) || "0")
-                productDetailElement.orderIndex = orderIndexRes?.[product.id]?.[productDetailElement.id] || 0
-                result.push({
-                    ...product,
-                    productDetails: productDetailElement
-                });
-            });
-        });
-
-        result.sort((a, b) => (a.productDetails.orderIndex - b.productDetails.orderIndex) || (b.createdAt - a.createdAt))
+        result = await splitProductsByAttribues(products)
 
         return res.status(200).json({ "statusCode": 200, data: result })
     }
@@ -89,21 +75,7 @@ const getProductsByMajorHierarchy = async (req, res) => {
             raw: true
         })
 
-        let orderIndexRes = await ProductsOrderIndex.findOne()
-        orderIndexRes = orderIndexRes.productsOrderJson
-
-        products.forEach((product) => {
-            product.productDetails.forEach((productDetailElement) => {
-                productDetailElement.attributeNumericValue = parseInt(Object.values(productDetailElement.attributeCombination)[0]?.match(/(\d+)/) || "0")
-                productDetailElement.orderIndex = orderIndexRes?.[product.id]?.[productDetailElement.id] || 0
-                result.push({
-                    ...product,
-                    productDetails: productDetailElement
-                });
-            });
-        });
-
-        result.sort((a, b) => (a.productDetails.orderIndex - b.productDetails.orderIndex) || (b.createdAt - a.createdAt))
+        result = await splitProductsByAttribues(products)
 
         return res.status(200).json({ statusCode: 200, data: result })
     }
@@ -229,21 +201,7 @@ const getProductsByFragrance = async (req, res) => {
             return res.status(200).json({ statusCode: 200, data: [] })
         }
 
-        let orderIndexRes = await ProductsOrderIndex.findOne()
-        orderIndexRes = orderIndexRes.productsOrderJson
-
-        products.forEach((product) => {
-            product.productDetails.forEach((productDetailElement) => {
-                productDetailElement.attributeNumericValue = parseInt(Object.values(productDetailElement.attributeCombination)[0]?.match(/(\d+)/) || "0")
-                productDetailElement.orderIndex = orderIndexRes?.[product.id]?.[productDetailElement.id] || 0
-                result.push({
-                    ...product,
-                    productDetails: productDetailElement
-                });
-            });
-        });
-
-        result.sort((a, b) => (a.productDetails.orderIndex - b.productDetails.orderIndex) || (b.createdAt - a.createdAt))
+        result = await splitProductsByAttribues(products)
 
         return res.status(200).json({ statusCode: 200, data: result })
     }
@@ -280,21 +238,7 @@ const searchProducts = async (req, res) => {
             return res.status(200).json({ statusCode: 200, data: [] })
         }
 
-        let orderIndexRes = await ProductsOrderIndex.findOne()
-        orderIndexRes = orderIndexRes.productsOrderJson
-
-        products.forEach((product) => {
-            product.productDetails.forEach((productDetailElement) => {
-                productDetailElement.attributeNumericValue = parseInt(Object.values(productDetailElement.attributeCombination)[0]?.match(/(\d+)/) || "0")
-                productDetailElement.orderIndex = orderIndexRes?.[product.id]?.[productDetailElement.id] || 0
-                result.push({
-                    ...product,
-                    productDetails: productDetailElement
-                });
-            });
-        });
-
-        result.sort((a, b) => (a.productDetails.orderIndex - b.productDetails.orderIndex) || (b.createdAt - a.createdAt))
+        result = await splitProductsByAttribues(products)
 
         return res.status(200).json({ statusCode: 200, data: result })
     }
@@ -317,21 +261,7 @@ const getAllProducts = async (req, res) => {
             return res.status(200).json({ statusCode: 200, data: [] })
         }
 
-        let orderIndexRes = await ProductsOrderIndex.findOne()
-        orderIndexRes = orderIndexRes.productsOrderJson
-
-        products.forEach((product) => {
-            product.productDetails.forEach((productDetailElement) => {
-                productDetailElement.attributeNumericValue = parseInt(Object.values(productDetailElement.attributeCombination)[0]?.match(/(\d+)/) || "0")
-                productDetailElement.orderIndex = orderIndexRes?.[product.id]?.[productDetailElement.id] || 0
-                result.push({
-                    ...product,
-                    productDetails: productDetailElement
-                });
-            });
-        });
-
-        result.sort((a, b) => (a.productDetails.orderIndex - b.productDetails.orderIndex) || (b.createdAt - a.createdAt))
+        result = await splitProductsByAttribues(products)
 
         return res.status(200).json({ statusCode: 200, data: result })
     }
@@ -451,6 +381,68 @@ const saveOrderOfProducts = async (req, res) => {
     }
 }
 
+const bestSellerProducts = async (req, res) => {
+    try {
+
+        let result = []
+        let products = await Product.findAll({
+            where: {
+                bestSellerStatus: true,
+                isDeleted: false
+            },
+            exclude: ["createdAt", "updatedAt", "isDeleted","hierarchyId"],
+            raw: true
+        })
+     
+        if (products.length == 0) {
+            return res.status(200).json({ statusCode: 200, data: [] })
+        }
+
+        let orderIndexRes = await ProductsOrderIndex.findOne()
+        orderIndexRes = orderIndexRes.productsOrderJson
+    
+        products.forEach((product) => {
+            product.productDetails.forEach((productDetailElement) => {
+                productDetailElement.attributeNumericValue = parseInt(Object.values(productDetailElement.attributeCombination)[0]?.match(/(\d+)/) || "0")
+                productDetailElement.orderIndex = orderIndexRes?.[product.id]?.[productDetailElement.id] || 0
+                if(productDetailElement.bestSellerStatus){
+                    result.push({
+                        ...product,
+                        productDetails: productDetailElement
+                    });
+                }
+            });
+        });
+    
+        result.sort((a, b) => (a.productDetails.orderIndex - b.productDetails.orderIndex) || (b.createdAt - a.createdAt))
+
+        return res.status(200).json({ statusCode: 200, data: result })
+    }
+    catch (err) {
+        return res.status(500).json({ "errorMessage": "Something went wrong" })
+    }
+}
+
+const splitProductsByAttribues = async (products)=> {
+    let result = []
+    let orderIndexRes = await ProductsOrderIndex.findOne()
+    orderIndexRes = orderIndexRes.productsOrderJson
+
+    products.forEach((product) => {
+        product.productDetails.forEach((productDetailElement) => {
+            productDetailElement.attributeNumericValue = parseInt(Object.values(productDetailElement.attributeCombination)[0]?.match(/(\d+)/) || "0")
+            productDetailElement.orderIndex = orderIndexRes?.[product.id]?.[productDetailElement.id] || 0
+            result.push({
+                ...product,
+                productDetails: productDetailElement
+            });
+        });
+    });
+
+    result.sort((a, b) => (a.productDetails.orderIndex - b.productDetails.orderIndex) || (b.createdAt - a.createdAt))
+    return result
+}
+
 module.exports = {
     getProductsByHierarchies,
     getProductsByMajorHierarchy,
@@ -460,6 +452,7 @@ module.exports = {
     searchProducts,
     getAllProducts,
     editProductAttributeColumn,
-    saveOrderOfProducts
+    saveOrderOfProducts,
+    bestSellerProducts
 }
 
