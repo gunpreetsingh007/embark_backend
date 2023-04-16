@@ -29,10 +29,6 @@ module.exports = function(sequelize, Sequelize) {
             key: 'id'
           }
         },
-        rating: { 
-          type: Sequelize.FLOAT, 
-          defaultValue: 0.0
-        },
         isActive: { 
           type: Sequelize.BOOLEAN, 
           defaultValue: true

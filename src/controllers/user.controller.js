@@ -7,7 +7,8 @@ const getUserDetails = async (req, res) => {
     try {
         const user = await User.findOne({
             where: { id: req.currentUser.id },
-            attributes: ["firstName", "lastName", "username", "email"]
+            attributes: ["firstName", "lastName", "username", "email"],
+            raw: true
         })
         return res.status(200).json({ "statusCode": 200, user })
     }
@@ -21,7 +22,7 @@ const updateUser = async (req, res) => {
         const { firstName, lastName, currentPassword, username, email, newPassword } = req.body;
         let encryptPassword
         if (newPassword) {
-            const user = await User.findOne({ where: { id: req.currentUser.id} })
+            const user = await User.findOne({ where: { id: req.currentUser.id}, raw: true })
             if (! await bcrypt.compare(currentPassword, user.password))
                 return res.status(400).json({ "statusCode": 400, "message": "Password is incorrect" })
             else {
@@ -35,7 +36,8 @@ const updateUser = async (req, res) => {
                 id: {
                     [Op.ne]: req.currentUser.id
                 }
-            }
+            },
+            raw: true
         })
 
         if (result) return res.status(400).json({ "statusCode": 400, "message": "Email is already registered" })
@@ -80,13 +82,14 @@ const getAddresses = async (req, res) => {
         const filterAddress = req.params.addressType
         if (filterAddress != 'all') {
             addresses = await Address.findOne({
-                where: { userId: req.currentUser.id, addressType: filterAddress }
+                where: { userId: req.currentUser.id, addressType: filterAddress }, raw: true
             })
             return res.status(200).json({ "statusCode": 200, addresses })
         }
         else {
             addresses = await Address.findAll({
                 where: { userId: req.currentUser.id },
+                raw: true,
                 order: [['addressType']]
             })
         }
@@ -123,7 +126,8 @@ const createEditAddresses = async (req, res) => {
         const result = await Address.findOne({
             where: {
                 userId: req.currentUser.id,
-                addressType: filterAddress
+                addressType: filterAddress,
+                raw: true
             }
         })
 

@@ -4,13 +4,14 @@ const multer = require('multer');
 const storage = multer.memoryStorage()
 const imageFilter = (req, file, cb) => {
     const fileExt = file.originalname.split('.').pop();
-    if (file.mimetype === "image/jpeg" && fileExt==="jpg" || 
+    if (file.mimetype === "image/jpeg" && fileExt==="jpg" ||
+        file.mimetype === "image/gif" && fileExt==="gif"  || 
         file.mimetype === "image/jpeg"&& fileExt==="jpeg" ||
         file.mimetype === "image/png" && fileExt==="png") {
 
         cb(null, true);
     } else {
-        cb(new Error("Image uploaded is not of type jpg/jpeg or png"), false);
+        cb(new Error("Image uploaded is not of type jpg/jpeg/png/gif"), false);
     }
 }
 const imageFilterMulterInstance = multer({ storage: storage, fileFilter: imageFilter });

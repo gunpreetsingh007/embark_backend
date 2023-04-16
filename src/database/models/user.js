@@ -58,7 +58,6 @@ module.exports = function(sequelize, Sequelize) {
         UserSchema.hasMany(models.Address, { foreignKey: 'userId', });
         UserSchema.hasMany(models.Order, { foreignKey: 'userId', });
         UserSchema.hasMany(models.Wishlist, { foreignKey: 'userId', });
-        UserSchema.hasMany(models.Review, { foreignKey: 'userId', });
     }
     return UserSchema;
 }

@@ -2,6 +2,7 @@ var Hierarchy = require('../database/models').Hierarchy;
 var Product = require("../database/models").Product
 var Fragrance = require("../database/models").Fragrance
 const sequelize = require("sequelize");
+const Review = require('../database/models').Review;
 var ProductsOrderIndex = require('../database/models').ProductsOrderIndex;
 
 
@@ -112,6 +113,53 @@ const getProductDetails = async (req, res) => {
             return res.status(500).json({ "errorMessage": "Invalid Id" })
         }
 
+        let allReviews = await Review.findAll({
+            where: {
+                productId: req.params.id,
+                isApproved: true
+            },
+            raw: true
+        })
+        let reviewMap = {}
+        let reviewRatingMap = {}
+        for(let review of allReviews){
+            if(reviewMap[review.productAttributeId]){
+                let existingArray = reviewMap[review.productAttributeId]
+                existingArray.push({
+                   rating: review.rating,
+                   name: review.name,
+                   email: review.email,
+                   reviewTitle: review.reviewTitle,
+                   reviewText: review.reviewText,
+                   reviewPictures: review.reviewPictures
+                })
+                reviewRatingMap[review.productAttributeId].push(review.rating)
+            }
+            else{
+                reviewMap[review.productAttributeId] = [{
+                   rating: review.rating,
+                   name: review.name,
+                   email: review.email,
+                   reviewTitle: review.reviewTitle,
+                   reviewText: review.reviewText,
+                   reviewPictures: review.reviewPictures
+                }]
+                reviewRatingMap[review.productAttributeId] = []
+                reviewRatingMap[review.productAttributeId].push(review.rating)
+            }           
+        }
+
+        product.productDetails.map(productDetailElement=>{
+            if(reviewMap[productDetailElement.id]){
+                productDetailElement.reviewsArray = reviewMap[productDetailElement.id]
+                productDetailElement.rating = parseFloat((reviewRatingMap[productDetailElement.id].reduce((a,b)=> parseFloat(a) + parseFloat(b), 0) / reviewRatingMap[productDetailElement.id].length).toFixed(1))
+            }
+            else{
+                productDetailElement.reviewsArray = []
+                productDetailElement.rating = 0
+            }
+        })
+
         return res.status(200).json({ statusCode: 200, data: product })
     }
     catch (err) {
@@ -217,7 +265,25 @@ const searchProducts = async (req, res) => {
         }
 
         let result = []
-        let products = await Product.findAll({
+
+        let productsFromFirstQuery = await Product.findAll({
+            where: {
+                $or: [
+                    sequelize.where(sequelize.col('productName'), 'LIKE', `%${req.query.q}%`),
+                    sequelize.where(sequelize.col('productDescription'), 'LIKE', `%${req.query.q}%`),
+                    sequelize.where(sequelize.col('Hierarchy.hierarchyName'), 'LIKE', `%${req.query.q}%`)
+                ],
+                isDeleted: false
+            },
+            include: [{
+                model: Hierarchy,
+                attributes: ["hierarchyName"]
+            }],
+            exclude: ["createdAt", "updatedAt", "isDeleted","hierarchyId"],
+            raw: true
+        })
+
+        let productsFromSecondQuery = await Product.findAll({
             where: {
                 $or: [
                     sequelize.where(sequelize.col('productName'), 'REGEXP', `${req.query.q.split(" ").join("|")}`),
@@ -233,12 +299,16 @@ const searchProducts = async (req, res) => {
             exclude: ["createdAt", "updatedAt", "isDeleted","hierarchyId"],
             raw: true
         })
+
+        let combinedProducts = [...productsFromFirstQuery, ...productsFromSecondQuery]
+
+        let uniqueProducts = [...new Set(combinedProducts)];
      
-        if (products.length == 0) {
+        if (uniqueProducts.length == 0) {
             return res.status(200).json({ statusCode: 200, data: [] })
         }
 
-        result = await splitProductsByAttribues(products)
+        result = await splitProductsByAttribuesSearch(uniqueProducts)
 
         return res.status(200).json({ statusCode: 200, data: result })
     }
@@ -400,11 +470,34 @@ const bestSellerProducts = async (req, res) => {
 
         let orderIndexRes = await ProductsOrderIndex.findOne()
         orderIndexRes = orderIndexRes.productsOrderJson
+
+        let productIds = products.map(product=> product.id)
+        let allReviews = await Review.findAll({
+            where: {
+                productId: productIds,
+                isApproved: true
+            },
+            attributes: ["productId", "productAttributeId",[sequelize.literal('round(sum(`rating`) / count(*), 1)'), "rating"], [sequelize.literal(`count(*)`), "ratingCount"]],
+            group: ["productId", "productAttributeId"],
+            raw: true
+        })
+        let reviewMap = {}
+        for(let review of allReviews){
+            reviewMap[review.productAttributeId] = {rating: review.rating, ratingCount: review.ratingCount} 
+        }
     
         products.forEach((product) => {
             product.productDetails.forEach((productDetailElement) => {
                 productDetailElement.attributeNumericValue = parseInt(Object.values(productDetailElement.attributeCombination)[0]?.match(/(\d+)/) || "0")
                 productDetailElement.orderIndex = orderIndexRes?.[product.id]?.[productDetailElement.id] || 0
+                if(reviewMap[productDetailElement.id]){
+                    productDetailElement.rating = parseFloat(reviewMap[productDetailElement.id].rating)
+                    productDetailElement.ratingCount = reviewMap[productDetailElement.id].ratingCount
+                }
+                else{
+                    productDetailElement.rating = 0
+                    productDetailElement.ratingCount = 0
+                }
                 if(productDetailElement.bestSellerStatus){
                     result.push({
                         ...product,
@@ -423,7 +516,33 @@ const bestSellerProducts = async (req, res) => {
     }
 }
 
+const addProductReview =  async (req, res) => {
+    try {
+        let payload = req.body;
+        payload.isApproved = true
+        let productReview = await Review.create(payload)
+        return res.status(200).json({ "statusCode": 200, data: productReview })
+    }
+    catch (err) {
+        return res.status(500).json({ "errorMessage": "Something Went Wrong" })
+    }
+}
+
 const splitProductsByAttribues = async (products)=> {
+    let productIds = products.map(product=> product.id)
+    let allReviews = await Review.findAll({
+        where: {
+            productId: productIds,
+            isApproved: true
+        },
+        attributes: ["productId", "productAttributeId",[sequelize.literal('round(sum(`rating`) / count(*), 1)'), "rating"], [sequelize.literal(`count(*)`), "ratingCount"]],
+        group: ["productId", "productAttributeId"],
+        raw: true
+    })
+    let reviewMap = {}
+    for(let review of allReviews){
+        reviewMap[review.productAttributeId] = {rating: review.rating, ratingCount: review.ratingCount} 
+    }
     let result = []
     let orderIndexRes = await ProductsOrderIndex.findOne()
     orderIndexRes = orderIndexRes.productsOrderJson
@@ -432,6 +551,14 @@ const splitProductsByAttribues = async (products)=> {
         product.productDetails.forEach((productDetailElement) => {
             productDetailElement.attributeNumericValue = parseInt(Object.values(productDetailElement.attributeCombination)[0]?.match(/(\d+)/) || "0")
             productDetailElement.orderIndex = orderIndexRes?.[product.id]?.[productDetailElement.id] || 0
+            if(reviewMap[productDetailElement.id]){
+                productDetailElement.rating = parseFloat(reviewMap[productDetailElement.id].rating)
+                productDetailElement.ratingCount = reviewMap[productDetailElement.id].ratingCount
+            }
+            else{
+                productDetailElement.rating = 0
+                productDetailElement.ratingCount = 0
+            }
             result.push({
                 ...product,
                 productDetails: productDetailElement
@@ -440,6 +567,43 @@ const splitProductsByAttribues = async (products)=> {
     });
 
     result.sort((a, b) => (a.productDetails.orderIndex - b.productDetails.orderIndex) || (b.createdAt - a.createdAt))
+    return result
+}
+
+const splitProductsByAttribuesSearch = async (products)=> {
+    let productIds = products.map(product=> product.id)
+    let allReviews = await Review.findAll({
+        where: {
+            productId: productIds,
+            isApproved: true
+        },
+        attributes: ["productId", "productAttributeId",[sequelize.literal('round(sum(`rating`) / count(*), 1)'), "rating"], [sequelize.literal(`count(*)`), "ratingCount"]],
+        group: ["productId", "productAttributeId"],
+        raw: true
+    })
+    let reviewMap = {}
+    for(let review of allReviews){
+        reviewMap[review.productAttributeId] = {rating: review.rating, ratingCount: review.ratingCount} 
+    }
+    let result = []
+    products.forEach((product) => {
+        product.productDetails.forEach((productDetailElement) => {
+            productDetailElement.attributeNumericValue = parseInt(Object.values(productDetailElement.attributeCombination)[0]?.match(/(\d+)/) || "0")
+            if(reviewMap[productDetailElement.id]){
+                productDetailElement.rating = parseFloat(reviewMap[productDetailElement.id].rating)
+                productDetailElement.ratingCount = reviewMap[productDetailElement.id].ratingCount
+            }
+            else{
+                productDetailElement.rating = 0
+                productDetailElement.ratingCount = 0
+            }
+            result.push({
+                ...product,
+                productDetails: productDetailElement
+            });
+        });
+    });
+
     return result
 }
 
@@ -453,6 +617,7 @@ module.exports = {
     getAllProducts,
     editProductAttributeColumn,
     saveOrderOfProducts,
-    bestSellerProducts
+    bestSellerProducts,
+    addProductReview
 }
 
