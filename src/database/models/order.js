@@ -22,6 +22,10 @@ module.exports = function (sequelize, Sequelize) {
       type: Sequelize.JSON,
       allowNull: false
     },
+    razorpayDetails: {
+      type: Sequelize.JSON,
+      allowNull: true
+    },
     totalItems: {
       type: Sequelize.INTEGER,
       allowNull: false
