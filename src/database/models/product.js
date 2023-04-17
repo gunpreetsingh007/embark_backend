@@ -73,6 +73,7 @@ module.exports = function(sequelize, Sequelize) {
     });
     ProductSchema.associate = models => { 
         ProductSchema.belongsTo(models.Fragrance, { foreignKey: 'fragranceId', });
+        ProductSchema.belongsTo(models.Hierarchy, { foreignKey: 'hierarchyId', });
         ProductSchema.hasMany(models.Review, { foreignKey: 'productId', });
     }
     return ProductSchema;
