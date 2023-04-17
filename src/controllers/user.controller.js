@@ -1,7 +1,9 @@
-var User = require('../database/models').User;
-var Address = require('../database/models').Address;
+var User = require("../database/models").User;
+var Address = require("../database/models").Address;
+var Wishlist = require("../database/models").Wishlist;
+var Product = require("../database/models").Product
 const { Op } = require("sequelize");
-const bcrypt = require('bcrypt');
+const bcrypt = require("bcrypt");
 
 const getUserDetails = async (req, res) => {
     try {
@@ -42,38 +44,38 @@ const updateUser = async (req, res) => {
 
         if (result) return res.status(400).json({ "statusCode": 400, "message": "Email is already registered" })
 
-        if (encryptPassword) {
-            await User.update(
-                {
-                    firstName: firstName.trim(),
-                    lastName: lastName.trim(),
-                    username: username.trim(),
-                    email: email.trim(),
+    if (encryptPassword) {
+      await User.update(
+        {
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          username: username.trim(),
+          email: email.trim(),
                     password: encryptPassword
                 }, {
-                where: {
+          where: {
                     id: req.currentUser.id
-                }
+        }
             })
         }
         else {
-            await User.update(
-                {
-                    firstName: firstName.trim(),
-                    lastName: lastName.trim(),
-                    username: username.trim(),
-                    email: email.trim(),
+      await User.update(
+        {
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          username: username.trim(),
+          email: email.trim(),
                 }, {
-                where: {
+          where: {
                     id: req.currentUser.id
-                }
-            })
         }
+            })
+    }
 
         return res.status(200).json({ "statusCode": 200, "message": "User changes are updated" })
-    } catch (error) {
+  } catch (error) {
         return res.status(500).json({ "errorMessage": "Something Went Wrong" })
-    }
+  }
 }
 
 const getAddresses = async (req, res) => {
@@ -86,9 +88,9 @@ const getAddresses = async (req, res) => {
 
         return res.status(200).json({ "statusCode": 200, data: addresses })
     }
-    catch (error) {
+  catch (error) {
         return res.status(500).json({ "errorMessage": "Something Went Wrong" })
-    }
+  }
 }
 
 const createEditAddresses = async (req, res) => {
@@ -160,11 +162,88 @@ const getAddressById = async (req, res) => {
         return res.status(500).json({ "errorMessage": "Something Went Wrong" })
     }
 }
+const getWishlists = async (req, res) => {
+  let userWishlist = []
+  try {
+    const result = await Wishlist.findAll({
+      where: {
+        userId: req.currentUser.id
+      },
+      attributes: ["productId", "productAttributeId"],
+      include: {
+        model: Product,
+        attributes: ["productDetails", "productName"]
+      }
+    });
 
+    result.forEach(element => {
+      const productDetails = element.Product.productDetails.filter((e) => {
+        if (e.id == element.productAttributeId) return e
+      })
+      userWishlist.push({ productId: element.productId, productName: element.Product.productName, productDetails })
+    });
+
+    return res.status(200).json({ statusCode: 200, data: userWishlist });
+  } catch (error) {
+    return res.status(500).json({ errorMessage: "Something Went Wrong" });
+  }
+};
+
+const getWishlistItemById = async (req, res) => {
+  const productId = req.params.productId
+  const { productAttributeId } = req.query
+  try {
+    const userWishlist = await Wishlist.findOne({
+      where: {
+        userId: req.currentUser.id,
+        productId,
+        productAttributeId
+      }
+    });
+    return res.status(200).json({ statusCode: 200, itemAddedToWishlist: userWishlist ? true : false });
+  } catch (error) {
+    return res.status(500).json({ errorMessage: "Something Went Wrong" });
+  }
+};
+
+const addWishlistItem = async (req, res) => {
+  const { productId, productAttributeId } = req.body
+  try {
+    await Wishlist.create({
+      productId,
+      productAttributeId,
+      userId: req.currentUser.id
+    });
+    return res.status(200).json({ statusCode: 200, message: "Product added to wish list" });
+  } catch (error) {
+    return res.status(500).json({ errorMessage: "Something Went Wrong", error });
+  }
+};
+
+const removeWishlistItem = async (req, res) => {
+  const { productId, productAttributeId } = req.body
+  try {
+    await Wishlist.destroy({
+      where: {
+        productId,
+        productAttributeId,
+        userId: req.currentUser.id
+      },
+      force: true
+    });
+    return res.status(200).json({ statusCode: 200, message: "Product is remove from wish list" });
+  } catch (error) {
+    return res.status(500).json({ errorMessage: "Something Went Wrong" });
+  }
+};
 module.exports = {
     getUserDetails,
     updateUser,
     getAddresses,
     createEditAddresses,
-    getAddressById
+    getAddressById,
+    getWishlists,
+    addWishlistItem,
+    removeWishlistItem,
+    getWishlistItemById,
 }

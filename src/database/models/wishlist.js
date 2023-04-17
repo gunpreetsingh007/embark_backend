@@ -23,8 +23,8 @@ module.exports = function(sequelize, Sequelize) {
            as: 'userId'
          }
         },
-        attributeCombination: {
-         type: Sequelize.JSON,
+        productAttributeId: {
+         type: Sequelize.UUID,
          allowNull: false
         },
         createdAt: { 
