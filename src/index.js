@@ -17,6 +17,7 @@ var userRoutes = require("./routes/user.route");
 var fileRoutes = require("./routes/files.route");
 var addProductRoutes = require("./routes/addProduct.route")
 var bannerRoutes = require("./routes/banner.route")
+var orderRoutes = require("./routes/order.route")
 
 // middlewares
 var { validateToken } = require('./middlewares/jwt')
@@ -53,6 +54,7 @@ const init = async () => {
     app.use('/file',fileRoutes);
     app.use('/addProduct',addProductRoutes);
     app.use('/banner',bannerRoutes);
+    app.use('/order',orderRoutes);
 
 
     app.all('*', function (req, res) {

@@ -78,41 +78,13 @@ const updateUser = async (req, res) => {
 
 const getAddresses = async (req, res) => {
     try {
-        let addresses
-        const filterAddress = req.params.addressType
-        if (filterAddress != 'all') {
-            addresses = await Address.findOne({
-                where: { userId: req.currentUser.id, addressType: filterAddress }, raw: true
-            })
-            return res.status(200).json({ "statusCode": 200, addresses })
-        }
-        else {
-            addresses = await Address.findAll({
-                where: { userId: req.currentUser.id },
-                raw: true,
-                order: [['addressType']]
-            })
-        }
-        if (addresses.length == 0) {
-            let indexAddress = []
-            indexAddress[0] = null
-            indexAddress[1] = null
-            return res.status(200).json({ "statusCode": 200, addresses: indexAddress })
-        }
-        else if (addresses.length == 2)
-            return res.status(200).json({ "statusCode": 200, addresses })
-        else {
-            let indexAddress = []
-            if (addresses[0].dataValues.addressType == 'billing') {
-                indexAddress[0] = addresses[0].dataValues
-                indexAddress[1] = null
-            }
-            else {
-                indexAddress[0] = null
-                indexAddress[1] = addresses[0].dataValues
-            }
-            return res.status(200).json({ "statusCode": 200, addresses: indexAddress })
-        }
+
+        let addresses = await Address.findAll({
+            where: { userId: req.currentUser.id },
+            raw: true
+        })
+
+        return res.status(200).json({ "statusCode": 200, data: addresses })
     }
     catch (error) {
         return res.status(500).json({ "errorMessage": "Something Went Wrong" })
@@ -121,22 +93,15 @@ const getAddresses = async (req, res) => {
 
 const createEditAddresses = async (req, res) => {
     try {
-        const { firstName, lastName, companyName, country, email, state, streetAddress, city, apartmentAddress, postcode, phone } = req.body;
-        const filterAddress = req.body.addressType
-        const result = await Address.findOne({
-            where: {
-                userId: req.currentUser.id,
-                addressType: filterAddress,
-                raw: true
-            }
-        })
+        const { id, firstName, lastName, companyName, gstNumber, country, email, state, streetAddress, city, apartmentAddress, postcode, phone, addressType } = req.body;
 
-        if (result) {
+        if (id) {
             await Address.update(
                 {
                     firstName: firstName.trim(),
                     lastName: lastName.trim(),
                     companyName: companyName.trim(),
+                    gstNumber: gstNumber.trim(),
                     email: email.trim(),
                     country: country.trim(),
                     state: state.trim(),
@@ -147,17 +112,17 @@ const createEditAddresses = async (req, res) => {
                     contact: phone.trim()
                 }, {
                 where: {
-                    userId: req.currentUser.id,
-                    addressType: filterAddress
+                    id
                 }
             })
-            return res.status(200).json({ "statusCode": 200, "message": "Address changes are updated" })
+            return res.status(200).json({ "statusCode": 200, "message": "Address is updated" })
         }
         else {
             await Address.create({
                 firstName: firstName.trim(),
                 lastName: lastName.trim(),
                 companyName: companyName.trim(),
+                gstNumber: gstNumber.trim(),
                 email: email.trim(),
                 country: country.trim(),
                 state: state.trim(),
@@ -166,7 +131,7 @@ const createEditAddresses = async (req, res) => {
                 apartment: apartmentAddress.trim(),
                 pincode: postcode.trim(),
                 contact: phone.trim(),
-                addressType: filterAddress,
+                addressType,
                 userId: req.currentUser.id
             })
             return res.status(200).json({ "statusCode": 200, "message": "Address is saved" })
@@ -178,9 +143,28 @@ const createEditAddresses = async (req, res) => {
 }
 
 
+const getAddressById = async (req, res) => {
+    try {
+        if(!req.params.id){
+            return res.status(500).json({ "errorMessage": "Id is not provided" })
+        }
+
+        let address = await Address.findOne({
+            where: { id: req.params.id },
+            raw: true
+        })
+
+        return res.status(200).json({ "statusCode": 200, data: address })
+    }
+    catch (error) {
+        return res.status(500).json({ "errorMessage": "Something Went Wrong" })
+    }
+}
+
 module.exports = {
     getUserDetails,
     updateUser,
     getAddresses,
     createEditAddresses,
+    getAddressById
 }

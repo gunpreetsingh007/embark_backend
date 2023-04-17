@@ -30,6 +30,10 @@ module.exports = function(sequelize, Sequelize) {
           type: Sequelize.STRING, 
           allowNull: true
         },
+        gstNumber: { 
+          type: Sequelize.STRING, 
+          allowNull: true
+        },
         country: {
           type: Sequelize.STRING,
           allowNull: false
