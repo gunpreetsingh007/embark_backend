@@ -42,6 +42,10 @@ module.exports = function(sequelize, Sequelize) {
            as: 'hierarchyId'
          }
         },
+        gender: { 
+          type: Sequelize.STRING, 
+          allowNull: false
+        },
         isGiftSetBox: { 
           type: Sequelize.BOOLEAN, 
           defaultValue: false
@@ -68,7 +72,6 @@ module.exports = function(sequelize, Sequelize) {
         }
     });
     ProductSchema.associate = models => { 
-        ProductSchema.belongsTo(models.Hierarchy, { foreignKey: 'hierarchyId', });
         ProductSchema.belongsTo(models.Fragrance, { foreignKey: 'fragranceId', });
         ProductSchema.hasMany(models.Review, { foreignKey: 'productId', });
     }

@@ -57,13 +57,12 @@ const getProductsByMajorHierarchy = async (req, res) => {
             attributes: ["id","hierarchyName"],
             raw: true
         })
-        if (childHierarchies.length == 0) {
-            return res.status(500).json({ "errorMessage": "No Child Hierarchies found" })
-        }
 
         for (let i = 0; i < childHierarchies.length; i++) {
            hierarchyIds = [ ...hierarchyIds, ...await getChildHierarchiesIds(childHierarchies, i, [])]
         }
+
+        hierarchyIds.push(selectedHierarchy.id)
 
         let result = []
 
@@ -607,6 +606,61 @@ const splitProductsByAttribuesSearch = async (products)=> {
     return result
 }
 
+const updateProductHierarchy = async (req, res) => {
+    try {
+        let {productId, hierarchyId} = req.body;
+        let product = await Product.find({
+            where: {
+                id: productId
+            }
+        })
+        let hierarchy = await Hierarchy.find({
+            where: {
+                id: hierarchyId
+            }
+        })
+        if(!product || !hierarchy){
+            return res.status(500).json({ "errorMessage": "Invalid Payloads" })
+        }
+        let updatedProduct = await Product.update({
+            hierarchyId
+        },{
+            where: {
+                id: productId
+            }
+        })
+        return res.status(200).json({ "statusCode": 200, data: "success" })
+    }
+    catch (err) {
+        return res.status(500).json({ "errorMessage": "Something Went Wrong" })
+    }
+}
+
+const updateProductGender = async (req, res) => {
+    try {
+        let {productId, gender} = req.body;
+        let product = await Product.find({
+            where: {
+                id: productId
+            }
+        })
+        if(!product || !["Men", "Women", "Unisex"].includes(gender)){
+            return res.status(500).json({ "errorMessage": "Invalid Payloads" })
+        }
+        let updatedProduct = await Product.update({
+            gender
+        },{
+            where: {
+                id: productId
+            }
+        })
+        return res.status(200).json({ "statusCode": 200, data: "success" })
+    }
+    catch (err) {
+        return res.status(500).json({ "errorMessage": "Something Went Wrong" })
+    }
+}
+
 module.exports = {
     getProductsByHierarchies,
     getProductsByMajorHierarchy,
@@ -618,6 +672,8 @@ module.exports = {
     editProductAttributeColumn,
     saveOrderOfProducts,
     bestSellerProducts,
-    addProductReview
+    addProductReview,
+    updateProductHierarchy,
+    updateProductGender
 }
 
