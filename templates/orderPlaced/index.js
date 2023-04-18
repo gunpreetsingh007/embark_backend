@@ -28,7 +28,8 @@ const generateOrderPlacedHtml = (addressDetails, orderDetails, orderAmount, deli
            .links a{
                color:#fff;
                text-decoration: none;
-               margin-right:2%;
+               margin-right:1%;
+               font-size:18px;
            }
            .links a:hover{
                color:#fff;
@@ -55,7 +56,7 @@ const generateOrderPlacedHtml = (addressDetails, orderDetails, orderAmount, deli
            </tr>
            <tr>
                <td>
-                   <div style="text-align:center; font-weight:600; font-size:24px; padding:100px 20px; line-height: 1.5em;">
+                   <div style="text-align:center; font-weight:600; font-size:20px; padding:100px 20px; line-height: 1.5em;">
                        <span>Hi ${firstName} ${lastName},</span>
                        <br>
                        <span>Your order has been placed.</span>
@@ -68,7 +69,7 @@ const generateOrderPlacedHtml = (addressDetails, orderDetails, orderAmount, deli
                        <br>
                        <span>Cheers,</span>
                    </div>
-                   <div style="border-bottom:1px solid #000; font-size:24px; padding:10px 20px; font-weight:600; line-height: 1.5em;">
+                   <div style="border-bottom:1px solid #000; font-size:20px; padding:10px 20px; font-weight:600; line-height: 1.5em;">
                        Order Details: Total ${orderDetails.length} items
                    </div>
                    ${orderDetails.map(order => {
@@ -82,7 +83,7 @@ const generateOrderPlacedHtml = (addressDetails, orderDetails, orderAmount, deli
                        )
                    })}
 
-                   <div style="border-bottom:1px solid #000; font-size:24px; padding:10px 20px; font-weight:600; line-height: 1.5em;">
+                   <div style="border-bottom:1px solid #000; font-size:20px; padding:10px 20px; font-weight:600; line-height: 1.5em;">
                      <br>
                      <span>Total Discount : ₹${orderAmountWithoutDiscount - orderAmount}</span>
                      <br>
@@ -91,7 +92,7 @@ const generateOrderPlacedHtml = (addressDetails, orderDetails, orderAmount, deli
                      <span>Total Amount : ₹${orderTotalAmount}</span>
                      <br>
                    </div>
-                   <div style=" font-size:24px; padding:10px 20px; font-weight:600; line-height: 1.5em;">
+                   <div style=" font-size:20px; padding:10px 20px; font-weight:600; line-height: 1.5em;">
                        <span>Shipping Details:</span>
                        <br>
                        <span>Order ID : ${orderToken}</span>
