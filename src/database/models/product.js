@@ -54,6 +54,10 @@ module.exports = function(sequelize, Sequelize) {
           type: Sequelize.BOOLEAN, 
           defaultValue: false
         },
+        hsnNumber: { 
+          type: Sequelize.INTEGER, 
+          defaultValue: false
+        },
         isNew: { 
           type: Sequelize.BOOLEAN, 
           defaultValue: false

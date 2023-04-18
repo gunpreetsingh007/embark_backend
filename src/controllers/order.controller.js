@@ -101,7 +101,8 @@ const generateOrderObject = async (req, payload, razorpayDetails=null)=>{
                 productDiscountPrice: selectedProductVariant.productDiscountPrice,
                 productPrice: selectedProductVariant.productPrice,
                 productId: product.id,
-                productAttributeId: selectedProductVariant.id
+                productAttributeId: selectedProductVariant.id,
+                productImage: selectedProductVariant.pictureUrl
             }
             orderAmount += selectedProductVariant.productDiscountPrice * item.count
             orderAmountWithoutDiscount += selectedProductVariant.productPrice * item.count
