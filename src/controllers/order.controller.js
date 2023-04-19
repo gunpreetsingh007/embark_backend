@@ -27,7 +27,17 @@ const createOrder = async (req, res) => {
             return res.status(200).json({ "statusCode": 200, "data": order })
         }
 
-        let orderCreated = await Order.create(orderPayload)
+        let orderCreated = await Order.create(orderPayload, {returning: true}).then(JSON.stringify).then(JSON.parse)
+
+        let updatedOrderWithToken = await Order.update({
+            orderToken: orderCreated.orderToken + orderCreated.id
+        },{
+            where: {
+                id: orderCreated.id
+            }
+        })
+
+        orderCreated.orderToken = orderCreated.orderToken + orderCreated.id
 
         let user = await User.findOne({
             where: {
@@ -37,7 +47,7 @@ const createOrder = async (req, res) => {
             raw: true
         })
 
-        sendEmail(orderPayload.addressDetails,orderPayload.orderDetails,orderPayload.orderAmount,orderPayload.deliveryCharges,orderPayload.orderTotalAmount,orderPayload.orderAmountWithoutDiscount,orderPayload.orderToken, user.firstName, user.lastName)
+        sendEmail(orderCreated.addressDetails,orderCreated.orderDetails,orderCreated.orderAmount,orderCreated.deliveryCharges,orderCreated.orderTotalAmount,orderCreated.orderAmountWithoutDiscount,orderCreated.orderToken, user.firstName, user.lastName)
 
         pushOrderToShipRocket(orderCreated)
 
@@ -67,7 +77,7 @@ const generateOrderObject = async (req, payload, razorpayDetails=null)=>{
    try{
         let {addressDetails, selectedList,orderNotes,paymentMethod} = payload
         let totalItems = selectedList.length
-        let orderToken = "EMB" + random(1000000, 9999999)
+        let orderToken = "EMB" + random(100000, 999999)
         let orderStatus = "PROCESSING"
         let orderDetails = []
         let orderAmount = 0
@@ -162,7 +172,17 @@ const paymentVerificationAndCreateOrder = async (req, res) => {
 
             let orderPayload = await generateOrderObject(req, payload, {razorpay_order_id, razorpay_payment_id, razorpay_signature})
 
-            let orderCreated = await Order.create(orderPayload)
+            let orderCreated = await Order.create(orderPayload, {returning: true}).then(JSON.stringify).then(JSON.parse)
+
+            let updatedOrderWithToken = await Order.update({
+                orderToken: orderCreated.orderToken + orderCreated.id
+            },{
+                where: {
+                    id: orderCreated.id
+                }
+            })
+    
+            orderCreated.orderToken = orderCreated.orderToken + orderCreated.id
 
             let user = await User.findOne({
                 where: {
@@ -172,7 +192,7 @@ const paymentVerificationAndCreateOrder = async (req, res) => {
                 raw: true
             })
     
-            sendEmail(orderPayload.addressDetails,orderPayload.orderDetails,orderPayload.orderAmount,orderPayload.deliveryCharges,orderPayload.orderTotalAmount,orderPayload.orderAmountWithoutDiscount,orderPayload.orderToken, user.firstName, user.lastName)
+            sendEmail(orderCreated.addressDetails,orderCreated.orderDetails,orderCreated.orderAmount,orderCreated.deliveryCharges,orderCreated.orderTotalAmount,orderCreated.orderAmountWithoutDiscount,orderCreated.orderToken, user.firstName, user.lastName)
 
             pushOrderToShipRocket(orderCreated)
     
