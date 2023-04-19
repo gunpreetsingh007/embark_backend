@@ -1,9 +1,8 @@
 module.exports = function (sequelize, Sequelize) {
   var OrderSchema = sequelize.define('Order', {
     id: {
-      type: Sequelize.UUID,
-      primaryKey: true,
-      defaultValue: Sequelize.UUIDV4
+      type: Sequelize.BIGINT,
+      primaryKey: true
     },
     userId: {
       type: Sequelize.UUID,
