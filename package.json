@@ -31,7 +31,8 @@
     "sequelize": "^4.44.4",
     "uuid": "^8.3.2",
     "winston": "^3.3.3",
-    "winston-daily-rotate-file": "^4.5.5"
+    "winston-daily-rotate-file": "^4.5.5",
+    "axios": "^0.21.3"
   },
   "devDependencies": {
     "nodemon": "^2.0.21",

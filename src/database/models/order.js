@@ -2,7 +2,8 @@ module.exports = function (sequelize, Sequelize) {
   var OrderSchema = sequelize.define('Order', {
     id: {
       type: Sequelize.BIGINT,
-      primaryKey: true
+      primaryKey: true,
+      autoIncrement: true
     },
     userId: {
       type: Sequelize.UUID,
@@ -23,6 +24,10 @@ module.exports = function (sequelize, Sequelize) {
     },
     razorpayDetails: {
       type: Sequelize.JSON,
+      allowNull: true
+    },
+    shiprocketOrderId: {
+      type: Sequelize.BIGINT,
       allowNull: true
     },
     totalItems: {

@@ -7,7 +7,9 @@ var nodemailer = require('nodemailer');
 const { generateOrderPlacedHtml } = require("../../templates/orderPlaced/index.js")
 const Razorpay = require('razorpay');
 const crypto = require("crypto")
+const Axios = require("../controllers/api/Axios")
 var razorpayInstance = new Razorpay({ key_id: process.env.RAZORPAY_KEY_ID, key_secret: process.env.RAZORPAY_KEY_SECRET })
+const axios = new Axios();
 
 const random = (min, max) => Math.floor(Math.random() * (max - min)) + min;
 
@@ -36,6 +38,8 @@ const createOrder = async (req, res) => {
         })
 
         sendEmail(orderPayload.addressDetails,orderPayload.orderDetails,orderPayload.orderAmount,orderPayload.deliveryCharges,orderPayload.orderTotalAmount,orderPayload.orderAmountWithoutDiscount,orderPayload.orderToken, user.firstName, user.lastName)
+
+        pushOrderToShipRocket(orderCreated)
 
         return res.status(200).json({ "statusCode": 200, "message": "success" })
     }
@@ -102,7 +106,8 @@ const generateOrderObject = async (req, payload, razorpayDetails=null)=>{
                 productPrice: selectedProductVariant.productPrice,
                 productId: product.id,
                 productAttributeId: selectedProductVariant.id,
-                productImage: selectedProductVariant.pictureUrl
+                productImage: selectedProductVariant.pictureUrl,
+                refNumber: selectedProductVariant.refNumber
             }
             orderAmount += selectedProductVariant.productDiscountPrice * item.count
             orderAmountWithoutDiscount += selectedProductVariant.productPrice * item.count
@@ -168,6 +173,8 @@ const paymentVerificationAndCreateOrder = async (req, res) => {
             })
     
             sendEmail(orderPayload.addressDetails,orderPayload.orderDetails,orderPayload.orderAmount,orderPayload.deliveryCharges,orderPayload.orderTotalAmount,orderPayload.orderAmountWithoutDiscount,orderPayload.orderToken, user.firstName, user.lastName)
+
+            pushOrderToShipRocket(orderCreated)
     
             return res.status(200).json({ "statusCode": 200, "message": "success" })
 
@@ -209,6 +216,83 @@ const sendEmail = async (addressDetails, orderDetails, orderAmount, deliveryChar
     }
     catch (err) {
        console.log("Error while sending mail")
+    }
+}
+
+const pushOrderToShipRocket = async (order) => {
+    try {
+        let payload = {
+            "order_id": order.id,
+            "order_date": moment(order.placedAt).utc().format("YYYY-MM-DD HH:mm"),
+            "pickup_location": "Embark Taloja Warehouse",
+            "channel_id": process.env.SHIPROCKET_CHANNEL_ID,
+            "comment": "",
+            "billing_customer_name": order.addressDetails?.billingAddress?.firstName,
+            "billing_last_name": order.addressDetails?.billingAddress?.lastName,
+            "billing_address": order.addressDetails?.billingAddress?.streetAddress,
+            "billing_address_2": order.addressDetails?.billingAddress?.apartment,
+            "billing_city": order.addressDetails?.billingAddress?.city,
+            "billing_pincode": order.addressDetails?.billingAddress?.pincode,
+            "billing_state": order.addressDetails?.billingAddress?.state,
+            "billing_country": order.addressDetails?.billingAddress?.country,
+            "billing_email": order.addressDetails?.billingAddress?.email,
+            "billing_phone": order.addressDetails?.billingAddress?.contact,
+            "shipping_is_billing": isEqual(order?.addressDetails?.billingAddress, order?.addressDetails?.shippingAddress),
+            "payment_method": order?.paymentMethod == "COD" ? "COD" : "Prepaid",
+            // "shipping_charges": order?.deliveryCharges,
+            // "giftwrap_charges": 0,
+            // "transaction_charges": 0,
+            // "total_discount": order?.orderAmountWithoutDiscount - order?.orderAmount,
+            "sub_total": order?.orderAmount,
+            "length": 27,
+            "breadth": 15,
+            "height": 10,
+            "weight": 0.5        }
+        if (!isEqual(order?.addressDetails?.billingAddress, order?.addressDetails?.shippingAddress)) {
+            payload["shipping_customer_name"] = order.addressDetails?.shippingAddress?.firstName
+            payload["shipping_last_name"] = order.addressDetails?.shippingAddress?.lastName
+            payload["shipping_address"] = order.addressDetails?.shippingAddress?.streetAddress
+            payload["shipping_address_2"] = order.addressDetails?.shippingAddress?.apartment
+            payload["shipping_city"] = order.addressDetails?.shippingAddress?.city
+            payload["shipping_pincode"] = order.addressDetails?.shippingAddress?.pincode
+            payload["shipping_country"] = order.addressDetails?.shippingAddress?.country
+            payload["shipping_state"] = order.addressDetails?.shippingAddress?.state
+            payload["shipping_email"] = order.addressDetails?.shippingAddress?.email
+            payload["shipping_phone"] = order.addressDetails?.shippingAddress?.contact
+        }
+        let order_items = []
+        let i=1
+        for (let product of order?.orderDetails) {
+            let obj = {}
+            obj.name = product.productName
+            obj.sku = product.refNumber || i
+            obj.units = product.count
+            obj.selling_price = product.productDiscountPrice
+            order_items.push(obj)
+            i += 1
+        }
+        payload["order_items"] = order_items
+        let options = {
+            method: "POST",
+            body: payload
+        }
+        let result = await axios.callApi("orders/create/adhoc", options)
+        if (result.status == 200) {
+            let updatedOrder = await Order.update({
+                shiprocketOrderId: result.data?.order_id
+            }, {
+                where: {
+                    id: order.id
+                }
+            })
+            return "success"
+        }
+        else {
+            return "failure"
+        }
+    }
+    catch {
+        return "failure"
     }
 }
 
