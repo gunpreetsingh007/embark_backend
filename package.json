@@ -12,12 +12,12 @@
   "author": "Gunpreet Singh",
   "license": "ISC",
   "dependencies": {
+    "axios": "^0.21.3",
     "bcrypt": "^5.1.0",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
-    "express-pdf": "^1.2.2",
     "jsonwebtoken": "^9.0.0",
     "lodash.isequal": "^4.5.0",
     "moment": "^2.29.4",
@@ -27,12 +27,12 @@
     "nodemailer": "^6.9.1",
     "path": "^0.12.7",
     "pg": "^8.10.0",
+    "puppeteer": "^19.9.1",
     "razorpay": "^2.8.6",
     "sequelize": "^4.44.4",
     "uuid": "^8.3.2",
     "winston": "^3.3.3",
-    "winston-daily-rotate-file": "^4.5.5",
-    "axios": "^0.21.3"
+    "winston-daily-rotate-file": "^4.5.5"
   },
   "devDependencies": {
     "nodemon": "^2.0.21",

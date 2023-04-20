@@ -1,6 +1,6 @@
 const moment = require("moment")
 
-const generateOrderPlacedHtml = (addressDetails, orderDetails, orderAmount, deliveryCharges, orderTotalAmount, orderAmountWithoutDiscount, orderToken, firstName, lastName) => {
+const generateOrderPlacedHtml = (order, firstName, lastName) => {
 
   return `<!DOCTYPE html
   PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -639,7 +639,7 @@ const generateOrderPlacedHtml = (addressDetails, orderDetails, orderAmount, deli
                                   style="padding:0;Margin:0;padding-left:20px;padding-right:20px;padding-top:40px">
                                   <h3 class="b_title"
                                     style="Margin:0;line-height:29px;mso-line-height-rule:exactly;font-family:Raleway, Arial, sans-serif;font-size:24px;font-style:normal;font-weight:normal;color:#386641">
-                                    ORDER NO.&nbsp;${orderToken}<br>${moment().tz("Asia/Kolkata").format("DD/MM/YYYY")}
+                                    ORDER NO.&nbsp;${order.orderToken}<br>${moment(order.placedAt).tz("Asia/Kolkata").format("DD/MM/YYYY")}
                                   </h3>
                                 </td>
                               </tr>
@@ -649,7 +649,7 @@ const generateOrderPlacedHtml = (addressDetails, orderDetails, orderAmount, deli
                       </table>
                     </td>
                   </tr>
-                  ${orderDetails.map(order => {
+                  ${order.orderDetails.map(order => {
                     return (
                       `<tr>
                         <td align="left"
@@ -766,7 +766,7 @@ const generateOrderPlacedHtml = (addressDetails, orderDetails, orderAmount, deli
                                       <td align="right" style="padding:0;Margin:0">
                                         <p
                                           style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:tahoma, verdana, segoe, sans-serif;line-height:24px;color:#4D4D4D;font-size:16px">
-                                          ₹${orderAmountWithoutDiscount}<br>₹${orderAmountWithoutDiscount - orderAmount}<br>₹${deliveryCharges}</p>
+                                          ₹${order.orderAmountWithoutDiscount}<br>₹${order.orderAmountWithoutDiscount - order.orderAmount}<br>₹${order.deliveryCharges}</p>
                                       </td>
                                     </tr>
                                   </table>
@@ -842,7 +842,7 @@ const generateOrderPlacedHtml = (addressDetails, orderDetails, orderAmount, deli
                                       <td align="right" class="es-m-txt-r" style="padding:0;Margin:0">
                                         <h3
                                           style="Margin:0;line-height:29px;mso-line-height-rule:exactly;font-family:Raleway, Arial, sans-serif;font-size:24px;font-style:normal;font-weight:normal;color:#386641">
-                                          ₹${orderTotalAmount}</h3>
+                                          ₹${order.orderTotalAmount}</h3>
                                       </td>
                                     </tr>
                                   </table>
@@ -892,7 +892,7 @@ const generateOrderPlacedHtml = (addressDetails, orderDetails, orderAmount, deli
                                     Billing</h3>
                                   <p
                                     style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:tahoma, verdana, segoe, sans-serif;line-height:24px;color:#4D4D4D;font-size:16px">
-                                    ${addressDetails?.billingAddress?.firstName} ${addressDetails?.billingAddress?.lastName}<br>${addressDetails?.billingAddress?.streetAddress}<br>${addressDetails?.billingAddress?.apartment}<br>${addressDetails?.billingAddress?.city} ${addressDetails?.billingAddress?.pincode} <br>${addressDetails?.billingAddress?.state}</p>
+                                    ${order.addressDetails?.billingAddress?.firstName} ${order.addressDetails?.billingAddress?.lastName}<br>${order.addressDetails?.billingAddress?.streetAddress}<br>${order.addressDetails?.billingAddress?.apartment}<br>${order.addressDetails?.billingAddress?.city} ${order.addressDetails?.billingAddress?.pincode} <br>${order.addressDetails?.billingAddress?.state}</p>
                                 </td>
                               </tr>
                             </table>
@@ -913,7 +913,7 @@ const generateOrderPlacedHtml = (addressDetails, orderDetails, orderAmount, deli
                                     Shipping</h3>
                                   <p
                                     style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:tahoma, verdana, segoe, sans-serif;line-height:24px;color:#4D4D4D;font-size:16px">
-                                    ${addressDetails.shippingAddress.firstName} ${addressDetails.shippingAddress.lastName}<br>${addressDetails.shippingAddress.streetAddress}<br>${addressDetails.shippingAddress.apartment}<br>${addressDetails.shippingAddress.city} ${addressDetails.shippingAddress.pincode} <br>${addressDetails.shippingAddress.state}</p>
+                                    ${order.addressDetails.shippingAddress.firstName} ${order.addressDetails.shippingAddress.lastName}<br>${order.addressDetails.shippingAddress.streetAddress}<br>${order.addressDetails.shippingAddress.apartment}<br>${order.addressDetails.shippingAddress.city} ${order.addressDetails.shippingAddress.pincode} <br>${order.addressDetails.shippingAddress.state}</p>
                                 </td>
                               </tr>
                             </table>

@@ -661,6 +661,34 @@ const updateProductGender = async (req, res) => {
     }
 }
 
+const getProductsByGender = async (req, res) => {
+    try {
+        let gender = req.params.gender;
+        if(!["Men", "Women", "Unisex"].includes(gender)){
+            return res.status(500).json({ "errorMessage": "Invalid Gender" })
+        }
+        let result = []
+        let products = await Product.findAll({
+            where: {
+                gender,
+                isDeleted: false
+            },
+            exclude: ["createdAt", "updatedAt", "isDeleted","hierarchyId"],
+            raw: true
+        })
+        if (products.length == 0) {
+            return res.status(200).json({ statusCode: 200, data: [] })
+        }
+
+        result = await splitProductsByAttribues(products)
+
+        return res.status(200).json({ "statusCode": 200, data: result })
+    }
+    catch (err) {
+        return res.status(500).json({ "errorMessage": "Something Went Wrong" })
+    }  
+}
+
 module.exports = {
     getProductsByHierarchies,
     getProductsByMajorHierarchy,
@@ -674,6 +702,7 @@ module.exports = {
     bestSellerProducts,
     addProductReview,
     updateProductHierarchy,
-    updateProductGender
+    updateProductGender,
+    getProductsByGender
 }
 

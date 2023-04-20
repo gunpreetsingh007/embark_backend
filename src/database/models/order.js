@@ -66,6 +66,14 @@ module.exports = function (sequelize, Sequelize) {
       type: Sequelize.STRING,
       allowNull: false
     },
+    invoiceId: {
+      type: Sequelize.UUID,
+      allowNull: true
+    },
+    failureReason: {
+      type: Sequelize.TEXT,
+      allowNull: true
+    },
     placedAt: {
       type: Sequelize.DATE,
       allowNull: false

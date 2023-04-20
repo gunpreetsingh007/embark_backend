@@ -7,9 +7,12 @@ var nodemailer = require('nodemailer');
 const { generateOrderPlacedHtml } = require("../../templates/orderPlaced/index.js")
 const Razorpay = require('razorpay');
 const crypto = require("crypto")
-const Axios = require("../controllers/api/Axios")
+const Axios = require("../controllers/api/Axios");
+const { generateMaharashtraInvoiceHtml } = require('../../templates/invoices/maharashtra_invoice');
 var razorpayInstance = new Razorpay({ key_id: process.env.RAZORPAY_KEY_ID, key_secret: process.env.RAZORPAY_KEY_SECRET })
 const axios = new Axios();
+const puppeteer = require('puppeteer');
+const { v4 } = require('uuid');
 
 const random = (min, max) => Math.floor(Math.random() * (max - min)) + min;
 
@@ -47,9 +50,9 @@ const createOrder = async (req, res) => {
             raw: true
         })
 
-        sendEmail(orderCreated.addressDetails,orderCreated.orderDetails,orderCreated.orderAmount,orderCreated.deliveryCharges,orderCreated.orderTotalAmount,orderCreated.orderAmountWithoutDiscount,orderCreated.orderToken, user.firstName, user.lastName)
-
-        pushOrderToShipRocket(orderCreated)
+        await pushOrderToShipRocket(orderCreated)
+        
+        sendEmail(orderCreated, user.firstName, user.lastName)
 
         return res.status(200).json({ "statusCode": 200, "message": "success" })
     }
@@ -77,7 +80,7 @@ const generateOrderObject = async (req, payload, razorpayDetails=null)=>{
    try{
         let {addressDetails, selectedList,orderNotes,paymentMethod} = payload
         let totalItems = selectedList.length
-        let orderToken = "EMB" + random(100000, 999999)
+        let orderToken = "EMB" + random(10000, 99999)
         let orderStatus = "PROCESSING"
         let orderDetails = []
         let orderAmount = 0
@@ -96,17 +99,17 @@ const generateOrderObject = async (req, payload, razorpayDetails=null)=>{
         })
         if(products.length == 0)
         {
-            throw err
+            throw new Error("Error in generate Order Object")
         }
 
         selectedList = selectedList.map((item)=>{
             let product = products.find((e)=> e.id == item.productId)
             if(!product){
-                throw err
+                throw new Error("Error in generate Order Object")
             }
             let selectedProductVariant = product.productDetails.find(e => isEqual(e.attributeCombination, item.attributeCombination))
             if(!selectedProductVariant){
-                throw err
+                throw new Error("Error in generate Order Object")
             }
             let obj = {
                 productName: product.productName,
@@ -117,7 +120,8 @@ const generateOrderObject = async (req, payload, razorpayDetails=null)=>{
                 productId: product.id,
                 productAttributeId: selectedProductVariant.id,
                 productImage: selectedProductVariant.pictureUrl,
-                refNumber: selectedProductVariant.refNumber
+                refNumber: selectedProductVariant.refNumber,
+                hsnNumber: product.hsnNumber
             }
             orderAmount += selectedProductVariant.productDiscountPrice * item.count
             orderAmountWithoutDiscount += selectedProductVariant.productPrice * item.count
@@ -192,9 +196,9 @@ const paymentVerificationAndCreateOrder = async (req, res) => {
                 raw: true
             })
     
-            sendEmail(orderCreated.addressDetails,orderCreated.orderDetails,orderCreated.orderAmount,orderCreated.deliveryCharges,orderCreated.orderTotalAmount,orderCreated.orderAmountWithoutDiscount,orderCreated.orderToken, user.firstName, user.lastName)
-
-            pushOrderToShipRocket(orderCreated)
+            await pushOrderToShipRocket(orderCreated)
+            
+            sendEmail(orderCreated, user.firstName, user.lastName)
     
             return res.status(200).json({ "statusCode": 200, "message": "success" })
 
@@ -207,7 +211,7 @@ const paymentVerificationAndCreateOrder = async (req, res) => {
     }
 }
 
-const sendEmail = async (addressDetails, orderDetails, orderAmount, deliveryCharges, orderTotalAmount, orderAmountWithoutDiscount, orderToken, firstName, lastName) => {
+const sendEmail = async (order, firstName, lastName) => {
     try {
         var transporter = nodemailer.createTransport({
             service: process.env.EMAIL_SERVICE,
@@ -217,13 +221,57 @@ const sendEmail = async (addressDetails, orderDetails, orderAmount, deliveryChar
             }
         });
 
-        const html = generateOrderPlacedHtml(addressDetails, orderDetails, orderAmount, deliveryCharges, orderTotalAmount, orderAmountWithoutDiscount, orderToken, firstName, lastName)
+        let invoiceHtml
+
+        if(order.addressDetails.shippingAddress.state.toLowerCase() == "maharashtra"){
+            invoiceHtml = generateMaharashtraInvoiceHtml(order, firstName, lastName)           
+        }
+        else{
+            invoiceHtml = generateMaharashtraInvoiceHtml(order, firstName, lastName)
+        }
+
+        let emailHtml = generateOrderPlacedHtml(order, firstName, lastName)
+
+        const browser = await puppeteer.launch();
+
+        const page = await browser.newPage();
+
+        await page.setContent(invoiceHtml, { waitUntil: 'domcontentloaded' });
+
+        await page.emulateMediaType('screen');
+
+        const elem = await page.$("html"); 
+        const boundingBox = await elem.boundingBox(); 
+        const pdfName = v4();
+
+        const pdf = await page.pdf({
+            path: `invoices/${pdfName}.pdf`,
+            margin: { right: '30px', left: '30px' },
+            printBackground: true,
+            height: `${boundingBox.height}px`,
+        });
+
+        await browser.close();
+
+        await Order.update({
+            invoiceId: pdfName
+        },{
+            where: {
+                id: order.id
+            }
+        })
 
         var mailOptions = {
             from: process.env.EMAIL_USERNAME,
-            to: addressDetails.shippingAddress.email,
+            to: order.addressDetails.shippingAddress.email,
             subject: 'Order Placed!',
-            html
+            html: emailHtml,
+            attachments: [
+                {
+                    filename: 'invoice.pdf',
+                    path: `invoices/${pdfName}.pdf`
+                }
+            ]
         };
 
         transporter.sendMail(mailOptions, function (error, info) {
@@ -235,6 +283,7 @@ const sendEmail = async (addressDetails, orderDetails, orderAmount, deliveryChar
         });
     }
     catch (err) {
+       console.log(err)
        console.log("Error while sending mail")
     }
 }
@@ -308,11 +357,11 @@ const pushOrderToShipRocket = async (order) => {
             return "success"
         }
         else {
-            return "failure"
+            throw new Error("pushOrderToShipRocket failure")
         }
     }
-    catch {
-        return "failure"
+    catch(err) {
+        throw err
     }
 }
 
