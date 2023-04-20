@@ -234,7 +234,9 @@ const sendEmail = async (order, firstName, lastName) => {
 
         let emailHtml = generateOrderPlacedHtml(order, firstName, lastName)
 
-        const browser = await puppeteer.launch();
+        const browser = await puppeteer.launch({
+            executablePath: '/usr/bin/chromium-browser'
+        });
 
         const page = await browser.newPage();
 
