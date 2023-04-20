@@ -8,7 +8,6 @@ const validateToken = async (req, res, next) => {
             const validToken = verify(accessToken, process.env.JWT_SECRET)
             if (validToken) {
                 req.currentUser = {
-                    username: validToken.username,
                     id: validToken.id,
                     role: validToken.role
                 }

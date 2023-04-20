@@ -299,7 +299,7 @@ const pushOrderToShipRocket = async (order) => {
             "billing_customer_name": order.addressDetails?.billingAddress?.firstName,
             "billing_last_name": order.addressDetails?.billingAddress?.lastName,
             "billing_address": order.addressDetails?.billingAddress?.streetAddress,
-            "billing_address_2": order.addressDetails?.billingAddress?.apartment,
+            // "billing_address_2": order.addressDetails?.billingAddress?.apartment,
             "billing_city": order.addressDetails?.billingAddress?.city,
             "billing_pincode": order.addressDetails?.billingAddress?.pincode,
             "billing_state": order.addressDetails?.billingAddress?.state,
@@ -321,7 +321,7 @@ const pushOrderToShipRocket = async (order) => {
             payload["shipping_customer_name"] = order.addressDetails?.shippingAddress?.firstName
             payload["shipping_last_name"] = order.addressDetails?.shippingAddress?.lastName
             payload["shipping_address"] = order.addressDetails?.shippingAddress?.streetAddress
-            payload["shipping_address_2"] = order.addressDetails?.shippingAddress?.apartment
+            // payload["shipping_address_2"] = order.addressDetails?.shippingAddress?.apartment
             payload["shipping_city"] = order.addressDetails?.shippingAddress?.city
             payload["shipping_pincode"] = order.addressDetails?.shippingAddress?.pincode
             payload["shipping_country"] = order.addressDetails?.shippingAddress?.country

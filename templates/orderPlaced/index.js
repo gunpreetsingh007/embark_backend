@@ -892,7 +892,7 @@ const generateOrderPlacedHtml = (order, firstName, lastName) => {
                                     Billing</h3>
                                   <p
                                     style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:tahoma, verdana, segoe, sans-serif;line-height:24px;color:#4D4D4D;font-size:16px">
-                                    ${order.addressDetails?.billingAddress?.firstName} ${order.addressDetails?.billingAddress?.lastName}<br>${order.addressDetails?.billingAddress?.streetAddress}<br>${order.addressDetails?.billingAddress?.apartment}<br>${order.addressDetails?.billingAddress?.city} ${order.addressDetails?.billingAddress?.pincode} <br>${order.addressDetails?.billingAddress?.state}</p>
+                                    ${order.addressDetails?.billingAddress?.firstName} ${order.addressDetails?.billingAddress?.lastName}<br>${order.addressDetails?.billingAddress?.streetAddress}<br>${order.addressDetails?.billingAddress?.landmark}<br>${order.addressDetails?.billingAddress?.city} ${order.addressDetails?.billingAddress?.pincode} <br>${order.addressDetails?.billingAddress?.state}</p>
                                 </td>
                               </tr>
                             </table>
@@ -913,7 +913,7 @@ const generateOrderPlacedHtml = (order, firstName, lastName) => {
                                     Shipping</h3>
                                   <p
                                     style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:tahoma, verdana, segoe, sans-serif;line-height:24px;color:#4D4D4D;font-size:16px">
-                                    ${order.addressDetails.shippingAddress.firstName} ${order.addressDetails.shippingAddress.lastName}<br>${order.addressDetails.shippingAddress.streetAddress}<br>${order.addressDetails.shippingAddress.apartment}<br>${order.addressDetails.shippingAddress.city} ${order.addressDetails.shippingAddress.pincode} <br>${order.addressDetails.shippingAddress.state}</p>
+                                    ${order.addressDetails.shippingAddress.firstName} ${order.addressDetails.shippingAddress.lastName}<br>${order.addressDetails.shippingAddress.streetAddress}<br>${order.addressDetails.shippingAddress.landmark}<br>${order.addressDetails.shippingAddress.city} ${order.addressDetails.shippingAddress.pincode} <br>${order.addressDetails.shippingAddress.state}</p>
                                 </td>
                               </tr>
                             </table>

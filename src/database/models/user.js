@@ -13,10 +13,10 @@ module.exports = function(sequelize, Sequelize) {
          type: Sequelize.STRING, 
          allowNull: true
         },
-        username: { 
-         type: Sequelize.STRING, 
-         allowNull: false,
-         unique: true
+        phoneNumber: { 
+          type: Sequelize.STRING, 
+          allowNull: true,
+          unique: true
         },
         email: { 
           type: Sequelize.STRING, 

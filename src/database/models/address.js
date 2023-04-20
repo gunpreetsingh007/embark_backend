@@ -42,7 +42,7 @@ module.exports = function(sequelize, Sequelize) {
          type: Sequelize.STRING,
          allowNull: false
         },
-        apartment: {
+        landmark: {
          type: Sequelize.STRING,
          allowNull: false
         },
@@ -53,6 +53,10 @@ module.exports = function(sequelize, Sequelize) {
         state: {
          type: Sequelize.STRING,
          allowNull: false
+        },
+        stateId:{
+          type: Sequelize.STRING,
+          allowNull: false
         },
         pincode: { 
           type: Sequelize.INTEGER, 
