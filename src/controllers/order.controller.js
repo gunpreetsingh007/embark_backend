@@ -13,6 +13,7 @@ var razorpayInstance = new Razorpay({ key_id: process.env.RAZORPAY_KEY_ID, key_s
 const axios = new Axios();
 const puppeteer = require('puppeteer');
 const { v4 } = require('uuid');
+const { generateOutsideMaharashtraInvoiceHtml } = require('../../templates/invoices/outside_maharashtra_invoice');
 
 const random = (min, max) => Math.floor(Math.random() * (max - min)) + min;
 
@@ -225,10 +226,10 @@ const sendEmail = async (order, firstName, lastName) => {
         let invoiceHtml
 
         if(order.addressDetails.shippingAddress.state.toLowerCase() == "maharashtra"){
-            invoiceHtml = generateMaharashtraInvoiceHtml(order, firstName, lastName)           
+            invoiceHtml = generateMaharashtraInvoiceHtml(order)           
         }
         else{
-            invoiceHtml = generateMaharashtraInvoiceHtml(order, firstName, lastName)
+            invoiceHtml = generateOutsideMaharashtraInvoiceHtml(order)
         }
 
         let emailHtml = generateOrderPlacedHtml(order, firstName, lastName)

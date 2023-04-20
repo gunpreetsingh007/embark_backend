@@ -5,7 +5,7 @@ var port = 8085;
 var LogRoutes = require('./classes/route-logger');
 const path = require("path")
 const cors = require("cors")
-const puppeteer = require('puppeteer');
+// const puppeteer = require('puppeteer');
 
 
 // models
@@ -49,14 +49,14 @@ const init = async () => {
     // index path
     app.get('/', async function (req, res) {
         console.log('app listening on port: ' + port);
-        let order = await Order.findOne({
-            where: {
-                id: 34
-            },
-            raw: true
-        })
-        let invoiceHtml
-        invoiceHtml = generateMaharashtraInvoiceHtml(order)
+        // let order = await Order.findOne({
+        //     where: {
+        //         id: 34
+        //     },
+        //     raw: true
+        // })
+        // let invoiceHtml
+        // invoiceHtml = generateMaharashtraInvoiceHtml(order)
 
         // if(order.addressDetails.shippingAddress.state.toLowerCase() == "maharashtra"){
         //     invoiceHtml = generateMaharashtraInvoiceHtml(order)           
@@ -67,27 +67,27 @@ const init = async () => {
 
         // let emailHtml = generateOrderPlacedHtml(order, firstName, lastName)
 
-        const browser = await puppeteer.launch();
+        // const browser = await puppeteer.launch();
 
-        const page = await browser.newPage();
+        // const page = await browser.newPage();
 
-        await page.setContent(invoiceHtml, { waitUntil: 'domcontentloaded' });
+        // await page.setContent(invoiceHtml, { waitUntil: 'domcontentloaded' });
 
-        await page.emulateMediaType('screen');
+        // await page.emulateMediaType('screen');
 
-        const elem = await page.$("html"); 
-        const boundingBox = await elem.boundingBox(); 
-        // const pdfName = v4();
+        // const elem = await page.$("html"); 
+        // const boundingBox = await elem.boundingBox(); 
+        // // const pdfName = v4();
 
-        const pdf = await page.pdf({
-            path: `invoices/invoice.pdf`,
-            margin: { right: '30px', left: '30px' },
-            printBackground: true,
-            height: `${boundingBox.height}px`,
-        });
+        // const pdf = await page.pdf({
+        //     path: `invoices/invoice.pdf`,
+        //     margin: { right: '30px', left: '30px' },
+        //     printBackground: true,
+        //     height: `${boundingBox.height}px`,
+        // });
 
-        await browser.close();
-        res.send(invoiceHtml)
+        // await browser.close();
+        res.send("App is running")
     });
 
     app.use('/hierarchy', hierarchyRoutes);
