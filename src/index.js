@@ -20,7 +20,10 @@ var bannerRoutes = require("./routes/banner.route")
 var orderRoutes = require("./routes/order.route")
 
 // middlewares
-var { validateToken } = require('./middlewares/jwt')
+var { validateToken } = require('./middlewares/jwt');
+const { generateMaharashtraInvoiceHtml } = require('../templates/invoices/maharashtra_invoice');
+
+var Order = require("../src/database/models").Order
 
 //Authenticate Database
 models.sequelize.authenticate().then(function () {
@@ -42,9 +45,15 @@ const init = async () => {
     app.use(LogRoutes);
 
     // index path
-    app.get('/', function (req, res) {
+    app.get('/', async function (req, res) {
         console.log('app listening on port: ' + port);
-        res.send('App is running')
+        let order = await Order.findOne({
+            where: {
+                id: 34
+            },
+            raw: true
+        })
+        res.send(generateMaharashtraInvoiceHtml(order))
     });
 
     app.use('/hierarchy', hierarchyRoutes);

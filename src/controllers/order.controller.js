@@ -66,6 +66,7 @@ const getAllOrders = async (req, res) => {
     try {
         
         let allOrders = await Order.findAll({
+            order: [["placedAt", "ASC"]],
             raw: true
         });
 

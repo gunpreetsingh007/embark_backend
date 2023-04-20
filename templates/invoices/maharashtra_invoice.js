@@ -1,6 +1,63 @@
 const moment = require("moment")
-
+const { ToWords } = require('to-words');
 const generateMaharashtraInvoiceHtml = (order) => {
+   
+    let hsnAggregate = {}
+    order.orderDetails.map((order)=>{
+        if(hsnAggregate[order.hsnNumber]){
+            hsnAggregate[order.hsnNumber].taxableValue += order.productDiscountPrice*order.count - 18/100*order.productDiscountPrice*order.count
+            hsnAggregate[order.hsnNumber].totalTaxAmount += 18/100*order.productDiscountPrice*order.count
+        }
+        else{
+            hsnAggregate[order.hsnNumber] = {}
+            hsnAggregate[order.hsnNumber].taxableValue = order.productDiscountPrice*order.count - 18/100*order.productDiscountPrice*order.count
+            hsnAggregate[order.hsnNumber].totalTaxAmount = 18/100*order.productDiscountPrice*order.count
+        }
+    })
+    const returnHsnTable = ()=>{
+        let html = ""
+        for(let hsnNumber in hsnAggregate){
+            let obj = hsnAggregate[hsnNumber]
+            html += `<tr>
+            <td class="w-50">
+                <div class="d-flex w-100">
+                   <div class="text-center" style="width:50%">${hsnNumber}</div>
+                   <div style="width:25%">${(obj.taxableValue).toFixed(2)}</div>
+                   <div style="width:25%">9%</div>
+                </div>
+            </td>
+            <td style="width:20%">${(obj.totalTaxAmount / 2).toFixed(2)}</td>
+            <td  style="width:18%">
+               <div class="d-flex">
+                <div class="text-center w-50">9%</div>
+                <div class="text-center w-50" style="border-left:1px solid #000;">${(obj.totalTaxAmount / 2).toFixed(2)}</div>
+               </div> 
+            </td>
+            <td>${(obj.totalTaxAmount).toFixed(2)}</td>
+          </tr>`
+        }
+        return html
+    }
+
+    const toWords = new ToWords({
+        localeCode: 'en-IN',
+        converterOptions: {
+          currency: true,
+          ignoreDecimal: false,
+          ignoreZeroCurrency: false,
+          doNotAddOnly: false,
+          currencyOptions: { // can be used to override defaults for the selected locale
+            name: 'Rupee',
+            plural: 'Rupees',
+            symbol: '₹',
+            fractionalUnit: {
+              name: 'Paisa',
+              plural: 'Paise',
+              symbol: '',
+            }
+          }
+        }
+    });
     return `<!DOCTYPE html>
     <html lang="en">
     <head>
@@ -104,7 +161,7 @@ const generateMaharashtraInvoiceHtml = (order) => {
                 <div>State Name: ${order.addressDetails.shippingAddress.state}, Code: ${order.addressDetails.shippingAddress.pincode}</div>
             </td>
         </tr>
-        <table class="w-100 summary" style="">
+        <table class="w-100 summary">
             ${order.orderDetails.map((order, index) => {
                 return (
                     `<tr>
@@ -197,7 +254,7 @@ const generateMaharashtraInvoiceHtml = (order) => {
                         <td style="width:10%">&nbsp;</td>
                         <td style="width:5%">&nbsp;</td>
                         <td style="width:5%">&nbsp;</td>
-                        <td class="fw-bold" style="width:10%">${order.orderAmount}</td>
+                        <td class="fw-bold" style="width:10%">&#8377;${order.orderAmount}</td>
                     </tr>
                 </table>
                 <table class="w-100">
@@ -206,7 +263,7 @@ const generateMaharashtraInvoiceHtml = (order) => {
                         <td style="width:10%; border-left:none; border-bottom:none">E. & O.E</td>
                     </tr>
                     <tr>
-                        <td class="fw-bold border-0" style="width:90%; border-right:none;">INR Six Hundred Thirty Five Only</td>
+                        <td class="fw-bold border-0" style="width:90%; border-right:none;">INR ${toWords.convert((order.orderAmount).toFixed(2))}</td>
                         <td style="width:10%; border-left:none; border-top:none">&nbsp;</td>
                     </tr>
                 </table>
@@ -233,47 +290,31 @@ const generateMaharashtraInvoiceHtml = (order) => {
                     </tr>
                 </table>
                 <table class="w-100">
-                    <tr>
-                        <td class="w-50">
-                            <div class="d-flex w-100">
-                               <div class="text-center" style="width:50%">${order.hsnNumber}</div>
-                               <div style="width:25%">${order.orderAmount - 18/100*order.orderAmount}</div>
-                               <div style="width:25%">9%</div>
-                            </div>
-                        </td>
-                        <td style="width:20%">${(18/100*order.orderAmount/2).toFixed(2)}</td>
-                        <td  style="width:18%">
-                           <div class="d-flex">
-                            <div class="text-center w-50">9%</div>
-                            <div class="text-center w-50" style="border-left:1px solid #000;">${(18/100*order.orderAmount/2).toFixed(2)}</div>
-                           </div> 
-                        </td>
-                        <td>${(18/100*order.orderAmount).toFixed(2)}</td>
-                    </tr>
+                ${returnHsnTable()}
                 </table>
                 <table class="w-100">
                     <tr>
                         <td class="w-50">
                             <div class="d-flex w-100">
                                <div class="text-center fw-bold" style="width:50%">Total</div>
-                               <div class="fw-bold" style="width:25%">538.14</div>
+                               <div class="fw-bold" style="width:25%">${order.orderAmount - 18/100*order.orderAmount}</div>
                                <div class="fw-bold" style="width:25%">&nbsp;</div>
                             </div>
                         </td>
-                        <td class="fw-bold" style="width:20%">48.43</td>
+                        <td class="fw-bold" style="width:20%">${(18/100*order.orderAmount/2).toFixed(2)}</td>
                         <td  style="width:18%">
                            <div class="d-flex">
                             <div class="text-center w-50">&nbsp;</div>
-                            <div class="text-center w-50 fw-bold" style="border-left:1px solid #000;">48.43</div>
-                           </div> 
+                            <div class="text-center w-50 fw-bold" style="border-left:1px solid #000;">${(18/100*order.orderAmount/2).toFixed(2)}</div>
+                           </div>
                         </td>
-                        <td class="fw-bold">96.86</td>
+                        <td class="fw-bold">${(18/100*order.orderAmount).toFixed(2)}</td>
                     </tr>
                 </table>
                 <table class="w-100 mb-2">
                     <tr>
                         <td class="ps-2">
-                            <div>Tax Amount(in words) :  <span class="fw-bold">INR Ninety Six and Eighty Six paise Only</span></div>
+                            <div>Tax Amount(in words) :  <span class="fw-bold">INR ${toWords.convert((18/100*order.orderAmount).toFixed(2))}</span></div>
                             <div class="d-flex w-100">
                                 <div class="w-50">
                                     <div>Comapny's GSTIN/UIN  : <span class="fw-bold">27AAMFD6389H1ZV</span></div>
@@ -282,11 +323,11 @@ const generateMaharashtraInvoiceHtml = (order) => {
                                        <span style="text-decoration: underline;">Declaration</span>
                                         <br>
                                         1. Our responsibility in respect of goods ceases on delivery,
-                                        We are not responsible for any subsequent loss due to 
-                                        damage, shortage or theft. 2.All the complaints pertaining to 
-                                        the goods of this bill should be informed within 7 day of 
+                                        We are not responsible for any subsequent loss due to
+                                        damage, shortage or theft. 2.All the complaints pertaining to
+                                        the goods of this bill should be informed within 7 day of
                                         delivery in writing otherwise no claim shall be entertained. 3.
-                                        The net & gross weight are weight when packed and they are 
+                                        The net & gross weight are weight when packed and they are
                                         acceptable to the buyer. 4.All the matters pertaining to this
                                     </div>
                                 </div>
@@ -303,7 +344,7 @@ const generateMaharashtraInvoiceHtml = (order) => {
                                         <div style="height:100px;">&nbsp;</div>
                                         <div style="position:absolute; bottom:0px; right:8%;">Authorised Signatory</div>
                                     </div>
-    
+
                                 </div>
                             </div>
                         </td>
@@ -312,7 +353,7 @@ const generateMaharashtraInvoiceHtml = (order) => {
                 <div class="mb-3 text-center">This is a Computer Generated Invoice</div>
         </table>
     </table>
-    
+
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
     </body>
