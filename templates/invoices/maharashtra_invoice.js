@@ -167,7 +167,7 @@ const generateMaharashtraInvoiceHtml = (order) => {
                     `<tr>
                         <td style="width:3%">${index + 1}</td>
                         <td style="width:10%">${order.refNumber}</td>
-                        <td class="" style="width:40%">${order.productName} - ${Object.values(order.attributeCombination)}</td>
+                        <td style="width:40%">${order.productName} - ${Object.values(order.attributeCombination)}</td>
                         <td style="width:10%">${order.hsnNumber}</td>
                         <td class="fw-bold" style="width:7%">${order.count} Pcs</td>
                         <td style="width:10%">${order.productDiscountPrice*order.count- 18/100*order.productDiscountPrice*order.count}</td>
@@ -176,7 +176,7 @@ const generateMaharashtraInvoiceHtml = (order) => {
                         <td class="fw-bold" style="width:10%">${order.productDiscountPrice*order.count - 18/100*order.productDiscountPrice*order.count}</td>
                     </tr>`
                 )
-            })}
+            }).join('')}
                 <tr>
                     <td class="w-auto">&nbsp;</td>
                     <td>&nbsp;</td>

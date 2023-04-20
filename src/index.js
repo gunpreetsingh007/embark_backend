@@ -5,6 +5,8 @@ var port = 8085;
 var LogRoutes = require('./classes/route-logger');
 const path = require("path")
 const cors = require("cors")
+const puppeteer = require('puppeteer');
+
 
 // models
 var models = require("./database/models");
@@ -53,7 +55,39 @@ const init = async () => {
             },
             raw: true
         })
-        res.send(generateMaharashtraInvoiceHtml(order))
+        let invoiceHtml
+        invoiceHtml = generateMaharashtraInvoiceHtml(order)
+
+        // if(order.addressDetails.shippingAddress.state.toLowerCase() == "maharashtra"){
+        //     invoiceHtml = generateMaharashtraInvoiceHtml(order)           
+        // }
+        // else{
+        //     invoiceHtml = generateMaharashtraInvoiceHtml(order)
+        // }
+
+        // let emailHtml = generateOrderPlacedHtml(order, firstName, lastName)
+
+        const browser = await puppeteer.launch();
+
+        const page = await browser.newPage();
+
+        await page.setContent(invoiceHtml, { waitUntil: 'domcontentloaded' });
+
+        await page.emulateMediaType('screen');
+
+        const elem = await page.$("html"); 
+        const boundingBox = await elem.boundingBox(); 
+        // const pdfName = v4();
+
+        const pdf = await page.pdf({
+            path: `invoices/invoice.pdf`,
+            margin: { right: '30px', left: '30px' },
+            printBackground: true,
+            height: `${boundingBox.height}px`,
+        });
+
+        await browser.close();
+        res.send(invoiceHtml)
     });
 
     app.use('/hierarchy', hierarchyRoutes);
