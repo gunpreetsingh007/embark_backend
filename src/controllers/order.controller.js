@@ -63,11 +63,11 @@ const createOrder = async (req, res) => {
     }
 }
 
-const getAllOrders = async (req, res) => {
+const getOrders = async (req, res) => {
     try {
         
         let allOrders = await Order.findAll({
-            order: [["placedAt", "ASC"]],
+            order: [["id", "ASC"]],
             raw: true
         });
 
@@ -371,6 +371,6 @@ const pushOrderToShipRocket = async (order) => {
 
 module.exports = {
     createOrder,
-    getAllOrders,
+    getOrders,
     paymentVerificationAndCreateOrder
 }
