@@ -239,6 +239,26 @@ const removeWishlistItem = async (req, res) => {
     return res.status(500).json({ errorMessage: "Something Went Wrong" });
   }
 };
+
+const getCurrentUserDetails = async (req, res) => {
+  try {
+    let currentUser = await User.findOne({
+      where: {
+        id: req.currentUser.id,
+      },
+      attributes: ["role","id","firstName","lastName","email","phoneNumber"]
+    });
+
+    if(!currentUser){
+      return res.status(401).json({ errorMessage: "Please sign in again" });
+    }
+
+    return res.status(200).json({ statusCode: 200, data: currentUser });
+  } catch (error) {
+    return res.status(500).json({ errorMessage: "Something Went Wrong" });
+  }
+}
+
 module.exports = {
   getUserDetails,
   updateUser,
@@ -249,4 +269,5 @@ module.exports = {
   addWishlistItem,
   removeWishlistItem,
   getWishlistItemById,
+  getCurrentUserDetails
 }

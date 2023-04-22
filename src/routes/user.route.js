@@ -8,10 +8,12 @@ const {
   addWishlistItem,
   removeWishlistItem,
   getWishlistItemById,
-  getAddressById
+  getAddressById,
+  getCurrentUserDetails
 } = require("../controllers/user.controller");
 var router = express.Router();
 
+router.get("/me", getCurrentUserDetails);
 router.get('/getUserDetails', getUserDetails);
 router.post('/updateUser', updateUser);
 router.get('/getAddresses', getAddresses);

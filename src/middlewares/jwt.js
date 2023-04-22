@@ -2,7 +2,7 @@ const { verify } = require('jsonwebtoken');
 
 const validateToken = async (req, res, next) => {
     const accessToken = req.headers['authorization']
-    if (!accessToken) return res.status(400).json({ "statusCode": 400, "errorMessage": 'Token is required' })
+    if (!accessToken) return res.status(401).json({ "statusCode": 401, "errorMessage": 'Sign In required' })
     else {
         try {
             const validToken = verify(accessToken, process.env.JWT_SECRET)
@@ -15,7 +15,7 @@ const validateToken = async (req, res, next) => {
             }
         }
         catch (error) {
-            return res.status(400).json({ "statusCode": 400, "errorMessage": 'Invalid Authorization Token' })
+            return res.status(401).json({ "statusCode": 401, "errorMessage": 'Please sign in again' })
         }
     }
 }

@@ -23,7 +23,7 @@ var orderRoutes = require("./routes/order.route")
 
 // middlewares
 var { validateToken } = require('./middlewares/jwt');
-const { generateMaharashtraInvoiceHtml } = require('../templates/invoices/maharashtra_invoice');
+// const { generateMaharashtraInvoiceHtml } = require('../templates/invoices/maharashtra_invoice');
 
 var Order = require("../src/database/models").Order
 

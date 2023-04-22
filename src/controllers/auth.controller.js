@@ -26,7 +26,7 @@ const login = async (req, res) => {
             return res.status(400).json({ "statusCode": 400, "errorMessage": "Password is incorrect" })
         else {
             const accessToken = createToken(user)
-            return res.status(200).json({ "statusCode": 200, "message": 'Login successful', accessToken, id: user.id, role: user.role })
+            return res.status(200).json({ "statusCode": 200, "message": 'Login successful', accessToken, id: user.id, role: user.role, firstName: user.firstName, lastName: user.lastName, email: user.email, contact: user.phoneNumber })
         }
     }
     catch (error) {
@@ -63,7 +63,7 @@ const createUser = async (req, res) => {
             role: 'user'
         })
         const accessToken = createToken(user)
-        return res.status(200).json({ "statusCode": 200, "message": "User registration complete", accessToken, id: user.id, role: user.role })
+        return res.status(200).json({ "statusCode": 200, "message": "User registration complete", accessToken, id: user.id, role: user.role, firstName: user.firstName, lastName: user.lastName, email: user.email, contact: user.phoneNumber })
     } catch (error) {
         console.log(error)
         return res.status(500).json({ "errorMessage": "Something Went Wrong" })

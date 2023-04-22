@@ -171,10 +171,10 @@ const generateMaharashtraInvoiceHtml = (order) => {
                         <td style="width:40%">${order.productName} - ${Object.values(order.attributeCombination)}</td>
                         <td style="width:10%; text-align:right;">${order.hsnNumber}</td>
                         <td class="fw-bold" style="width:7%; text-align:right;">${order.count} Pcs</td>
-                        <td style="width:10%; text-align:right;">${order.productDiscountPrice*order.count- 18/100*order.productDiscountPrice*order.count}</td>
+                        <td style="width:10%; text-align:right;">${(order.productDiscountPrice*order.count- 18/100*order.productDiscountPrice*order.count).toFixed(2)}</td>
                         <td style="width:5%; text-align:right;">Pcs</td>
                         <td style="width:5%">&nbsp;</td>
-                        <td class="fw-bold" style="width:10%; text-align:right;">${order.productDiscountPrice*order.count - 18/100*order.productDiscountPrice*order.count}</td>
+                        <td class="fw-bold" style="width:10%; text-align:right;">${(order.productDiscountPrice*order.count - 18/100*order.productDiscountPrice*order.count).toFixed(2)}</td>
                     </tr>`
                 )
             }).join('')}
@@ -231,7 +231,7 @@ const generateMaharashtraInvoiceHtml = (order) => {
                 <td style="text-align:right;">&nbsp;</td>
                 <td style="text-align:right;">&nbsp;</td>
                 <td>&nbsp;</td>
-                <td class="fw-bold" style="text-align:right;">0.31</td>
+                <td class="fw-bold" style="text-align:right;">${(order.orderAmount - Math.round(order.orderAmount)).toFixed(2)}</td>
             </tr>
                 <tr>
                     <td class="w-auto">&nbsp;</td>
@@ -266,7 +266,7 @@ const generateMaharashtraInvoiceHtml = (order) => {
                         <td style="width:10%">&nbsp;</td>
                         <td style="width:5%">&nbsp;</td>
                         <td style="width:5%">&nbsp;</td>
-                        <td class="fw-bold" style="width:10%; text-align:right;">&#8377;${order.orderAmount}</td>
+                        <td class="fw-bold" style="width:10%; text-align:right;">&#8377;${Math.round(order.orderAmount)}</td>
                     </tr>
                 </table>
                 <table class="w-100">
@@ -275,7 +275,7 @@ const generateMaharashtraInvoiceHtml = (order) => {
                         <td style="width:10%; border-left:none; border-bottom:none">E. & O.E</td>
                     </tr>
                     <tr>
-                        <td class="fw-bold border-0" style="width:90%; border-right:none;">INR ${toWords.convert((order.orderAmount).toFixed(2))}</td>
+                        <td class="fw-bold border-0" style="width:90%; border-right:none;">INR ${toWords.convert(Math.round(order.orderAmount))}</td>
                         <td style="width:10%; border-left:none; border-top:none">&nbsp;</td>
                     </tr>
                 </table>
@@ -309,7 +309,7 @@ const generateMaharashtraInvoiceHtml = (order) => {
                         <td class="w-50">
                             <div class="d-flex w-100">
                                <div class="text-center fw-bold" style="width:50%">Total</div>
-                               <div class="fw-bold" style="width:25%">${order.orderAmount - 18/100*order.orderAmount}</div>
+                               <div class="fw-bold" style="width:25%">${(order.orderAmount - 18/100*order.orderAmount).toFixed(2)}</div>
                                <div class="fw-bold" style="width:25%">&nbsp;</div>
                             </div>
                         </td>

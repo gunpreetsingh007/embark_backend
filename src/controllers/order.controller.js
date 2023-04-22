@@ -18,6 +18,7 @@ const { generateOutsideMaharashtraInvoiceHtml } = require('../../templates/invoi
 const random = (min, max) => Math.floor(Math.random() * (max - min)) + min;
 
 const createOrder = async (req, res) => {
+    let orderCreated
     try {
         
         let orderPayload = await generateOrderObject(req, req.body)
@@ -31,7 +32,7 @@ const createOrder = async (req, res) => {
             return res.status(200).json({ "statusCode": 200, "data": order })
         }
 
-        let orderCreated = await Order.create(orderPayload, {returning: true}).then(JSON.stringify).then(JSON.parse)
+        orderCreated = await Order.create(orderPayload, {returning: true}).then(JSON.stringify).then(JSON.parse)
 
         let updatedOrderWithToken = await Order.update({
             orderToken: orderCreated.orderToken + orderCreated.id
@@ -59,6 +60,16 @@ const createOrder = async (req, res) => {
     }
     catch (error) {
         console.log(error)
+        if(orderCreated){
+            await Order.update({
+                orderStatus: "FAILED",
+                failureReason: error.message
+            },{
+                where: {
+                    id: orderCreated.id
+                }
+            })
+        }
         return res.status(500).json({ "errorMessage": "Something Went Wrong" })
     }
 }
@@ -159,6 +170,7 @@ const generateOrderObject = async (req, payload, razorpayDetails=null)=>{
 }
 
 const paymentVerificationAndCreateOrder = async (req, res) => {
+    let orderCreated
     try {
 
         const { razorpay_order_id, razorpay_payment_id, razorpay_signature, payload } =
@@ -178,7 +190,7 @@ const paymentVerificationAndCreateOrder = async (req, res) => {
 
             let orderPayload = await generateOrderObject(req, payload, {razorpay_order_id, razorpay_payment_id, razorpay_signature})
 
-            let orderCreated = await Order.create(orderPayload, {returning: true}).then(JSON.stringify).then(JSON.parse)
+            orderCreated = await Order.create(orderPayload, {returning: true}).then(JSON.stringify).then(JSON.parse)
 
             let updatedOrderWithToken = await Order.update({
                 orderToken: orderCreated.orderToken + orderCreated.id
@@ -209,6 +221,16 @@ const paymentVerificationAndCreateOrder = async (req, res) => {
         }
     }
     catch (error) {
+        if(orderCreated){
+            await Order.update({
+                orderStatus: "FAILED",
+                failureReason: error.message
+            },{
+                where: {
+                    id: orderCreated.id
+                }
+            })
+        }
         return res.status(500).json({ "errorMessage": "Something Went Wrong" })
     }
 }
