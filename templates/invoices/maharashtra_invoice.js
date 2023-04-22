@@ -26,14 +26,14 @@ const generateMaharashtraInvoiceHtml = (order) => {
                    <div style="width:25%">9%</div>
                 </div>
             </td>
-            <td style="width:20%">${(obj.totalTaxAmount / 2).toFixed(2)}</td>
+            <td class=" text-end" style="width:20%">${(obj.totalTaxAmount / 2).toFixed(2)}</td>
             <td  style="width:18%">
                <div class="d-flex">
-                <div class="text-center w-50">9%</div>
-                <div class="text-center w-50" style="border-left:1px solid #000;">${(obj.totalTaxAmount / 2).toFixed(2)}</div>
+                <div class="text-end w-50">9%</div>
+                <div class=" w-50 text-end" style="border-left:1px solid #000;">${(obj.totalTaxAmount / 2).toFixed(2)}</div>
                </div> 
             </td>
-            <td>${(obj.totalTaxAmount).toFixed(2)}</td>
+            <td class="text-end">${(obj.totalTaxAmount).toFixed(2)}</td>
           </tr>`
         }
         return html
@@ -86,7 +86,8 @@ const generateMaharashtraInvoiceHtml = (order) => {
     <div class="container">
     <div class="h1 text-center">DIVINE COSMETICS LLP</div>
     <div class="address text-center">NISHUVI, 3rd Floor, 3-B 75, Dr. Annie Besant Road, Worli, Mumbai 400018</div>
-    <table class="mt-4 w-100">
+    <div class="mt-2 taxInvoiceTitle" style="text-align:center; font-weight:600; color:#000;"> Tax Invoice </div>
+    <table class="mt-2 w-100">
         <tr>
             <td class="w-50 p-2" style="vertical-align: baseline;">
                 <div>Buyer</div>
@@ -168,12 +169,12 @@ const generateMaharashtraInvoiceHtml = (order) => {
                         <td style="width:3%">${index + 1}</td>
                         <td style="width:10%">${order.refNumber}</td>
                         <td style="width:40%">${order.productName} - ${Object.values(order.attributeCombination)}</td>
-                        <td style="width:10%">${order.hsnNumber}</td>
-                        <td class="fw-bold" style="width:7%">${order.count} Pcs</td>
-                        <td style="width:10%">${order.productDiscountPrice*order.count- 18/100*order.productDiscountPrice*order.count}</td>
-                        <td style="width:5%">Pcs</td>
+                        <td style="width:10%; text-align:right;">${order.hsnNumber}</td>
+                        <td class="fw-bold" style="width:7%; text-align:right;">${order.count} Pcs</td>
+                        <td style="width:10%; text-align:right;">${order.productDiscountPrice*order.count- 18/100*order.productDiscountPrice*order.count}</td>
+                        <td style="width:5%; text-align:right;">Pcs</td>
                         <td style="width:5%">&nbsp;</td>
-                        <td class="fw-bold" style="width:10%">${order.productDiscountPrice*order.count - 18/100*order.productDiscountPrice*order.count}</td>
+                        <td class="fw-bold" style="width:10%; text-align:right;">${order.productDiscountPrice*order.count - 18/100*order.productDiscountPrice*order.count}</td>
                     </tr>`
                 )
             }).join('')}
@@ -202,25 +203,36 @@ const generateMaharashtraInvoiceHtml = (order) => {
                 <tr>
                     <td class="w-auto">&nbsp;</td>
                     <td>&nbsp;</td>
-                    <td class="fw-bold">Output CGST 9.00%</td>
+                    <td class="fw-bold"  style="text-align:right;">Output CGST 9.00%</td>
                     <td>&nbsp;</td>
                     <td>&nbsp;</td>
-                    <td>9</td>
-                    <td>%</td>
+                    <td style="text-align:right;">9</td>
+                    <td style="text-align:right;">%</td>
                     <td>&nbsp;</td>
-                    <td class="fw-bold">${(18/100*order.orderAmount/2).toFixed(2)}</td>
+                    <td class="fw-bold" style="text-align:right;">${(18/100*order.orderAmount/2).toFixed(2)}</td>
                 </tr>
                 <tr>
                     <td class="w-auto">&nbsp;</td>
                     <td>&nbsp;</td>
-                    <td class="fw-bold">Output SGST 9.00%</td>
+                    <td class="fw-bold"  style="text-align:right;">Output SGST 9.00%</td>
                     <td>&nbsp;</td>
                     <td>&nbsp;</td>
-                    <td>9</td>
-                    <td>%</td>
+                    <td style="text-align:right;">9</td>
+                    <td style="text-align:right;">%</td>
                     <td>&nbsp;</td>
-                    <td class="fw-bold">${(18/100*order.orderAmount/2).toFixed(2)}</td>
+                    <td class="fw-bold" style="text-align:right;">${(18/100*order.orderAmount/2).toFixed(2)}</td>
                 </tr>
+                <tr>
+                <td class="w-auto">&nbsp;</td>
+                <td>&nbsp;</td>
+                <td class="fw-bold"  style="text-align:right;">Round Off</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td style="text-align:right;">&nbsp;</td>
+                <td style="text-align:right;">&nbsp;</td>
+                <td>&nbsp;</td>
+                <td class="fw-bold" style="text-align:right;">0.31</td>
+            </tr>
                 <tr>
                     <td class="w-auto">&nbsp;</td>
                     <td>&nbsp;</td>
@@ -248,13 +260,13 @@ const generateMaharashtraInvoiceHtml = (order) => {
                         <td style="width:3%">&nbsp;</td>
                         <td class="" style="width:50%; text-align: end;">Total</td>
                         <td style="width:10%">&nbsp;</td>
-                        <td style="width:7%">${order.orderDetails.map(item=>item.count).reduce(function (x, y) {
+                        <td style="width:7%; text-align:right;">${order.orderDetails.map(item=>item.count).reduce(function (x, y) {
                             return x + y;
                         }, 0)} Pcs</td>
                         <td style="width:10%">&nbsp;</td>
                         <td style="width:5%">&nbsp;</td>
                         <td style="width:5%">&nbsp;</td>
-                        <td class="fw-bold" style="width:10%">&#8377;${order.orderAmount}</td>
+                        <td class="fw-bold" style="width:10%; text-align:right;">&#8377;${order.orderAmount}</td>
                     </tr>
                 </table>
                 <table class="w-100">
@@ -301,14 +313,14 @@ const generateMaharashtraInvoiceHtml = (order) => {
                                <div class="fw-bold" style="width:25%">&nbsp;</div>
                             </div>
                         </td>
-                        <td class="fw-bold" style="width:20%">${(18/100*order.orderAmount/2).toFixed(2)}</td>
+                        <td class="fw-bold text-end" style="width:20%">${(18/100*order.orderAmount/2).toFixed(2)}</td>
                         <td  style="width:18%">
                            <div class="d-flex">
                             <div class="text-center w-50">&nbsp;</div>
-                            <div class="text-center w-50 fw-bold" style="border-left:1px solid #000;">${(18/100*order.orderAmount/2).toFixed(2)}</div>
+                            <div class="text-end w-50 fw-bold" style="border-left:1px solid #000;">${(18/100*order.orderAmount/2).toFixed(2)}</div>
                            </div>
                         </td>
-                        <td class="fw-bold">${(18/100*order.orderAmount).toFixed(2)}</td>
+                        <td class="fw-bold text-end">${(18/100*order.orderAmount).toFixed(2)}</td>
                     </tr>
                 </table>
                 <table class="w-100 mb-2">
@@ -328,7 +340,7 @@ const generateMaharashtraInvoiceHtml = (order) => {
                                         the goods of this bill should be informed within 7 day of
                                         delivery in writing otherwise no claim shall be entertained. 3.
                                         The net & gross weight are weight when packed and they are
-                                        acceptable to the buyer. 4.All the matters pertaining to this
+                                        acceptable to the buyer. 4.All the matters pertaining to this bill are subject to Mumbai Jurisdiction.
                                     </div>
                                 </div>
                                 <div class="w-50 ps-4">
@@ -341,10 +353,14 @@ const generateMaharashtraInvoiceHtml = (order) => {
                                     <div>E-Mail : <span class="fw-bold">warehouse01@divinecosmetics.org</span></div>
                                     <div class="mt-3" style="border-left:1px solid #000; border-top:1px solid #000; position:relative;">
                                         <div class="fw-bold" style="position:absolute;top:0px;right:8%;">for DIVINE COSMETICS LLP</div>
-                                        <div style="height:100px;">&nbsp;</div>
+                                        <div style="height:120px;">
+                                        <div style="height:90px; width:150px; position:absolute; right:55px; top:-20px;">       
+                                        <img class="stamp" style="position:absolute; top:0px; left:0px;" src="http://localhost:8085/images/assets/stamp.png" height="150px" width="150px" />
+                                        <img class="sign" style="position:absolute; top:0px; left:0px;" src="http://localhost:8085/images/assets/sign.png" height="150px" width="150px" />
+                                        </div>
+                                        </div>
                                         <div style="position:absolute; bottom:0px; right:8%;">Authorised Signatory</div>
                                     </div>
-
                                 </div>
                             </div>
                         </td>
