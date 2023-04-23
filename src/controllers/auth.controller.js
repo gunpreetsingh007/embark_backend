@@ -1,11 +1,20 @@
 var User = require('../database/models').User;
-const { sign } = require('jsonwebtoken');
+const { sign, verify } = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const sequelize = require("sequelize")
 const { Op } = require("sequelize");
+var nodemailer = require('nodemailer');
+const { generateForgetPassowrdHTML } = require("../../templates/forgetPassword")
 
 const createToken = (user) => {
     const accessToken = sign({ id: user.id, role: user.role }, process.env.JWT_SECRET);
+    return accessToken
+}
+
+const createForgetToken = (user) => {
+    const accessToken = sign({ email: user.email }, process.env.JWT_SECRET,{
+        expiresIn: '1h'
+   });
     return accessToken
 }
 
@@ -89,8 +98,92 @@ const checkByUsername = async (req, res) => {
     }
 }
 
+const forgetPassword = async (req, res) => {
+    try {
+
+        const { email } = req.body;
+
+        const user = await User.findOne({
+            where: { email: email.trim() }
+        })
+        if (!user) return res.status(400).json({ "statusCode": 400, "errorMessage": "Invalid email" })
+
+        const accessToken = createForgetToken(user)
+
+        var transporter = nodemailer.createTransport({
+            service: process.env.EMAIL_SERVICE,
+            auth: {
+                user: process.env.EMAIL_USERNAME,
+                pass: process.env.EMAIL_PASSWORD
+            }
+        });
+
+        let emailHtml = generateForgetPassowrdHTML(accessToken, user.firstName, user.lastName)
+
+        var mailOptions = {
+            from: process.env.EMAIL_USERNAME,
+            to: email,
+            subject: 'Forgot password',
+            html: emailHtml,
+        };
+
+        transporter.sendMail(mailOptions, function (error, info) {
+            if (error) {
+                console.log(error);
+            } else {
+                console.log('Email sent');
+            }
+        });
+
+        return res.status(200).json({ "message": "Reset mail sent to the register mail" })
+    }
+    catch (error) {
+        return res.status(500).json({ "errorMessage": "Something Went Wrong" })
+    }
+}
+
+const verifyforgetToken = async (req, res) => {
+    try {
+        const { token } = req.body;
+        const validToken = verify(token, process.env.JWT_SECRET)
+        return res.status(200).json({ "statusCode": 200, data: validToken })
+    }
+    catch (error) {
+        return res.status(500).json({ "errorMessage": "Something Went Wrong" })
+    }
+}
+
+const resetPassword = async (req, res) => {
+    try {
+        const { email, newPassword, token } = req.body;
+
+        const validToken = verify(token, process.env.JWT_SECRET)
+        
+        if(validToken.email != email)
+            return res.status(500).json({ "errorMessage": "Invalid email" })
+            
+        const password = await bcrypt.hash(newPassword, 10)
+
+        await User.update(
+            {
+                password
+            }, {
+            where: {
+                email
+            }
+        })
+        return res.status(200).json({ "statusCode": 200, "message": "Password reset" })
+    }
+    catch (error) {
+        return res.status(500).json({ "errorMessage": "Something Went Wrong" })
+    }
+}
+
 module.exports = {
     login,
     createUser,
-    checkByUsername
+    checkByUsername,
+    forgetPassword,
+    verifyforgetToken,
+    resetPassword
 }
