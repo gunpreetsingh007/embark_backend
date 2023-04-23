@@ -355,8 +355,8 @@ const generateMaharashtraInvoiceHtml = (order) => {
                                         <div class="fw-bold" style="position:absolute;top:0px;right:8%;">for DIVINE COSMETICS LLP</div>
                                         <div style="height:120px;">
                                         <div style="height:90px; width:150px; position:absolute; right:55px; top:-20px;">       
-                                        <img class="stamp" style="position:absolute; top:0px; left:0px;" src="http://localhost:8085/images/assets/stamp.png" height="150px" width="150px" />
-                                        <img class="sign" style="position:absolute; top:0px; left:0px;" src="http://localhost:8085/images/assets/sign.png" height="150px" width="150px" />
+                                        <img class="stamp" style="position:absolute; top:0px; left:0px;" src="${process.env.SERVER_URL}/images/assets/stamp.png" height="150px" width="150px" />
+                                        <img class="sign" style="position:absolute; top:0px; left:0px;" src="${process.env.SERVER_URL}/images/assets/sign.png" height="150px" width="150px" />
                                         </div>
                                         </div>
                                         <div style="position:absolute; bottom:0px; right:8%;">Authorised Signatory</div>
