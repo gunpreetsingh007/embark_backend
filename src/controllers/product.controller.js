@@ -269,7 +269,7 @@ const searchProducts = async (req, res) => {
             where: {
                 $or: [
                     sequelize.where(sequelize.col('productName'), 'LIKE', `%${req.query.q}%`),
-                    sequelize.where(sequelize.col('productDescription'), 'LIKE', `%${req.query.q}%`),
+                    //sequelize.where(sequelize.col('productDescription'), 'LIKE', `%${req.query.q}%`),
                     sequelize.where(sequelize.col('Hierarchy.hierarchyName'), 'LIKE', `%${req.query.q}%`)
                 ],
                 isDeleted: false
@@ -282,22 +282,24 @@ const searchProducts = async (req, res) => {
             raw: true
         })
 
-        let productsFromSecondQuery = await Product.findAll({
-            where: {
-                $or: [
-                    sequelize.where(sequelize.col('productName'), 'REGEXP', `${req.query.q.split(" ").join("|")}`),
-                    sequelize.where(sequelize.col('productDescription'), 'REGEXP', `${req.query.q.split(" ").join("|")}`),
-                    sequelize.where(sequelize.col('Hierarchy.hierarchyName'), 'REGEXP', `${req.query.q.split(" ").join("|")}`)
-                ],
-                isDeleted: false
-            },
-            include: [{
-                model: Hierarchy,
-                attributes: ["hierarchyName"]
-            }],
-            exclude: ["createdAt", "updatedAt", "isDeleted","hierarchyId"],
-            raw: true
-        })
+        // let productsFromSecondQuery = await Product.findAll({
+        //     where: {
+        //         $or: [
+        //             sequelize.where(sequelize.col('productName'), 'REGEXP', `${req.query.q.split(" ").join("|")}`),
+        //             sequelize.where(sequelize.col('productDescription'), 'REGEXP', `${req.query.q.split(" ").join("|")}`),
+        //             sequelize.where(sequelize.col('Hierarchy.hierarchyName'), 'REGEXP', `${req.query.q.split(" ").join("|")}`)
+        //         ],
+        //         isDeleted: false
+        //     },
+        //     include: [{
+        //         model: Hierarchy,
+        //         attributes: ["hierarchyName"]
+        //     }],
+        //     exclude: ["createdAt", "updatedAt", "isDeleted","hierarchyId"],
+        //     raw: true
+        // })
+
+        let productsFromSecondQuery = []
 
         let combinedProducts = [...productsFromFirstQuery, ...productsFromSecondQuery]
 

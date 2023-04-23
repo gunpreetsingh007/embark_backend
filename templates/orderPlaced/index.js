@@ -474,7 +474,7 @@ const generateOrderPlacedHtml = (order, firstName, lastName) => {
                               style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
                               <tr>
                                 <td align="center" style="padding:0;Margin:0;position:relative"><img class="adapt-img"
-                                    src="http://localhost:8085/images/assets/emailBanner.jpg"
+                                    src="${process.env.SERVER_URL}/images/assets/emailBanner.jpg"
                                     alt title width="600"
                                     style="display:block;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic">
                                 </td>
