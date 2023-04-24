@@ -60,7 +60,7 @@ const createUser = async (req, res) => {
             raw: true
         })
 
-        if (result) return res.status(400).json({ "statusCode": 400, "message": "Email or phone number is already registered" })
+        if (result) return res.status(400).json({ "statusCode": 400, "errorMessage": "Email or phone number is already registered" })
 
         const encryptPassword = await bcrypt.hash(password, 10)
         const user = await User.create({

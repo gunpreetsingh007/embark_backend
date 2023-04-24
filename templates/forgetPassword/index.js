@@ -8,11 +8,10 @@ const generateForgetPassowrdHTML = (token, firstName, lastName) => {
       <title>Document</title>
     </head>
     <body>
-        Greetings ${firstName + " " + lastName} <br> <br>
+        Greetings ${firstName + " " + lastName}, <br><br>
         Forgot your password? <br>
         we received a request to reset the password for your account. Please
-        <a href="${process.env.FRONTEND_URL}/reset-password/${token}">Click here</a> to set a password <br>
-        This link will be expired in 1 hour <br><br>
+        <a href="${process.env.FRONTEND_URL}/reset-password/${token}">Click here</a> to set the password. This link will be expired in 1 hour <br><br>
         Team Embark
     </body >   
   </html > `
