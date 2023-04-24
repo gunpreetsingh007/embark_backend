@@ -77,8 +77,28 @@ const createOrder = async (req, res) => {
 const getOrders = async (req, res) => {
     try {
         
+        const { start, end, type } = req.query
+
+        if(type && !["PROCESSING", "COMPLETED", "CANCELLED", "REFUNDED", "FAILED", "ON HOLD"].includes(type)){
+            return res.status(500).json({ "errorMessage": "Invalid Status Type" })
+        }
+
+        const queryOptions = type ? {
+            placedAt: {
+                $gte: start ? moment(parseInt(start)) : moment().startOf("day"),
+                $lte: end ? moment(parseInt(end)) : moment().endOf("day")
+            },
+            orderStatus: type
+        } : {
+            placedAt: {
+                $gte: start ? moment(parseInt(start)) : moment().startOf("day"),
+                $lte: end ? moment(parseInt(end)) : moment().endOf("day")
+            }
+        }
+
         let allOrders = await Order.findAll({
-            order: [["id", "ASC"]],
+            where: queryOptions,
+            order: [["id", "DESC"]],
             raw: true
         });
 
@@ -89,9 +109,70 @@ const getOrders = async (req, res) => {
     }
 }
 
+const getOrderById = async (req, res) => {
+    try {
+        
+        const { id } = req.params
+
+        if(!id){
+            return res.status(500).json({ "errorMessage": "Id is not provided" })
+        }
+
+        const queryOptions = {
+            id
+        }
+
+        let order = await Order.findOne({
+            where: queryOptions,
+            attributes: ["addressDetails", "orderDetails","placedAt","orderStatus","paymentMethod","orderToken","orderAmount","orderTotalAmount","deliveryCharges"],
+            raw: true
+        });
+
+        if(!order){
+            return res.status(500).json({ "errorMessage": "No order found with the given id" }) 
+        }
+
+        return res.status(200).json({ "statusCode": 200, "data": order })
+    }
+    catch (error) {
+        return res.status(500).json({ "errorMessage": "Something Went Wrong" })
+    }
+}
+
+const bulkUpdateOrderStatus = async (req, res) => {
+    try {
+        
+        const { ids, status } = req.body
+        
+        if( !Array.isArray(ids) || ids.length == 0 || !status || !["PROCESSING", "COMPLETED", "CANCELLED", "REFUNDED", "FAILED", "ON HOLD"].includes(status)){
+            return res.status(500).json({ "errorMessage": "Please provide correct payload" })
+        }
+
+        await Order.update({
+            orderStatus: status
+        },{
+            where: {
+                id: ids
+            }
+        })
+
+        return res.status(200).json({ "statusCode": 200, "message": "Updated Successfully" })
+    }
+    catch (error) {
+        return res.status(500).json({ "errorMessage": "Something Went Wrong" })
+    }
+}
+
 const generateOrderObject = async (req, payload, razorpayDetails=null)=>{
    try{
         let {addressDetails, selectedList,orderNotes,paymentMethod} = payload
+        let oldOrdersCount = await Order.count({
+            where: {
+                userId: req.currentUser.id
+            },
+            raw: true
+        })
+        let purchaseCount = oldOrdersCount + 1
         let totalItems = selectedList.length
         let orderToken = "EMB" + random(10000, 99999)
         let orderStatus = "PROCESSING"
@@ -161,6 +242,7 @@ const generateOrderObject = async (req, payload, razorpayDetails=null)=>{
             orderTotalAmount,
             orderStatus,
             razorpayDetails,
+            purchaseCount,
             placedAt: moment().utc()
         }
    }
@@ -394,5 +476,7 @@ const pushOrderToShipRocket = async (order) => {
 module.exports = {
     createOrder,
     getOrders,
+    getOrderById,
+    bulkUpdateOrderStatus,
     paymentVerificationAndCreateOrder
 }

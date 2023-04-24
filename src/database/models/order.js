@@ -70,6 +70,10 @@ module.exports = function (sequelize, Sequelize) {
       type: Sequelize.UUID,
       allowNull: true
     },
+    purchaseCount: {
+      type: Sequelize.BIGINT,
+      allowNull: false
+    },
     failureReason: {
       type: Sequelize.TEXT,
       allowNull: true
