@@ -176,26 +176,6 @@ const getOrdersCount = async (req, res) => {
     }
 }
 
-const updateOrdersCount = async (req, res) => {
-    try {
-        
-        let result = await ProductsOrderIndex.findOne();
-
-        let newOrdersCount = result.totalOrders + 1
-
-        await ProductsOrderIndex.update({
-            totalOrders: newOrdersCount
-        },{
-            where:{}
-        })
-
-        return res.status(200).json({ "statusCode": 200, "data": newOrdersCount })
-    }
-    catch (error) {
-        return res.status(500).json({ "errorMessage": "Something Went Wrong" })
-    }
-}
-
 const generateOrderObject = async (req, payload, razorpayDetails=null)=>{
    try{
         let {addressDetails, selectedList,orderNotes,paymentMethod} = payload
@@ -521,6 +501,5 @@ module.exports = {
     getOrderById,
     bulkUpdateOrderStatus,
     paymentVerificationAndCreateOrder,
-    getOrdersCount,
-    updateOrdersCount
+    getOrdersCount
 }

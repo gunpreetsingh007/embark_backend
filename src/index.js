@@ -6,6 +6,7 @@ var LogRoutes = require('./classes/route-logger');
 const path = require("path")
 const cors = require("cors")
 // const puppeteer = require('puppeteer');
+require("../src/crons/updateOrdersCount")
 
 
 // models
