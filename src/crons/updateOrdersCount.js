@@ -24,4 +24,4 @@ const updateOrdersCount = async () => {
 }
 
 
-module.exports = cron.schedule('* * * * *', updateOrdersCount);
+module.exports = cron.schedule('*/3 * * * *', updateOrdersCount);
