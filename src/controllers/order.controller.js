@@ -14,6 +14,7 @@ const axios = new Axios();
 const puppeteer = require('puppeteer');
 const { v4 } = require('uuid');
 const { generateOutsideMaharashtraInvoiceHtml } = require('../../templates/invoices/outside_maharashtra_invoice');
+const ProductsOrderIndex = require('../database/models').ProductsOrderIndex
 
 const random = (min, max) => Math.floor(Math.random() * (max - min)) + min;
 
@@ -163,6 +164,38 @@ const bulkUpdateOrderStatus = async (req, res) => {
     }
 }
 
+const getOrdersCount = async (req, res) => {
+    try {
+        
+        let result = await ProductsOrderIndex.findOne();
+
+        return res.status(200).json({ "statusCode": 200, "data": result.totalOrders })
+    }
+    catch (error) {
+        return res.status(500).json({ "errorMessage": "Something Went Wrong" })
+    }
+}
+
+const updateOrdersCount = async (req, res) => {
+    try {
+        
+        let result = await ProductsOrderIndex.findOne();
+
+        let newOrdersCount = result.totalOrders + 1
+
+        await ProductsOrderIndex.update({
+            totalOrders: newOrdersCount
+        },{
+            where:{}
+        })
+
+        return res.status(200).json({ "statusCode": 200, "data": newOrdersCount })
+    }
+    catch (error) {
+        return res.status(500).json({ "errorMessage": "Something Went Wrong" })
+    }
+}
+
 const generateOrderObject = async (req, payload, razorpayDetails=null)=>{
    try{
         let {addressDetails, selectedList,orderNotes,paymentMethod} = payload
@@ -171,6 +204,15 @@ const generateOrderObject = async (req, payload, razorpayDetails=null)=>{
                 userId: req.currentUser.id
             },
             raw: true
+        })
+        let productOrderIndexResult = await ProductsOrderIndex.findOne();
+
+        let newOrdersCount = productOrderIndexResult.totalOrders + 1
+
+        await ProductsOrderIndex.update({
+            totalOrders: newOrdersCount
+        },{
+            where:{}
         })
         let purchaseCount = oldOrdersCount + 1
         let totalItems = selectedList.length
@@ -478,5 +520,7 @@ module.exports = {
     getOrders,
     getOrderById,
     bulkUpdateOrderStatus,
-    paymentVerificationAndCreateOrder
+    paymentVerificationAndCreateOrder,
+    getOrdersCount,
+    updateOrdersCount
 }
