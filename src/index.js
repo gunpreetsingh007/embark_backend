@@ -6,7 +6,7 @@ var LogRoutes = require('./classes/route-logger');
 const path = require("path")
 const cors = require("cors")
 // const puppeteer = require('puppeteer');
-require("../src/crons/updateOrdersCount")
+// require("../src/crons/updateOrdersCount")
 
 
 // models
@@ -26,7 +26,7 @@ var orderRoutes = require("./routes/order.route")
 var { validateToken } = require('./middlewares/jwt');
 // const { generateMaharashtraInvoiceHtml } = require('../templates/invoices/maharashtra_invoice');
 
-var Order = require("../src/database/models").Order
+// var Order = require("../src/database/models").Order
 
 //Authenticate Database
 models.sequelize.authenticate().then(function () {
@@ -44,11 +44,11 @@ const init = async () => {
 
     app.use(cors())
 
-    app.use('/images', express.static(path.join(__dirname, "../images")));
+    app.use('/api/images', express.static(path.join(__dirname, "../images")));
     app.use(LogRoutes);
 
     // index path
-    app.get('/', async function (req, res) {
+    app.get('/api', async function (req, res) {
         console.log('app listening on port: ' + port);
         // let order = await Order.findOne({
         //     where: {
@@ -91,14 +91,14 @@ const init = async () => {
         res.send("App is running")
     });
 
-    app.use('/hierarchy', hierarchyRoutes);
-    app.use('/product', productRoutes);
-    app.use('/auth', authRoutes);
-    app.use('/user', validateToken, userRoutes)
-    app.use('/file',fileRoutes);
-    app.use('/addProduct',addProductRoutes);
-    app.use('/banner',bannerRoutes);
-    app.use('/order',orderRoutes);
+    app.use('/api/hierarchy', hierarchyRoutes);
+    app.use('/api/product', productRoutes);
+    app.use('/api/auth', authRoutes);
+    app.use('/api/user', validateToken, userRoutes)
+    app.use('/api/file',fileRoutes);
+    app.use('/api/addProduct',addProductRoutes);
+    app.use('/api/banner',bannerRoutes);
+    app.use('/api/order',orderRoutes);
 
 
     app.all('*', function (req, res) {
