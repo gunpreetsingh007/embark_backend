@@ -130,7 +130,8 @@ const getProductDetails = async (req, res) => {
                    email: review.email,
                    reviewTitle: review.reviewTitle,
                    reviewText: review.reviewText,
-                   reviewPictures: review.reviewPictures
+                   reviewPictures: review.reviewPictures,
+                   createdAt: review.createdAt
                 })
                 reviewRatingMap[review.productAttributeId].push(review.rating)
             }
@@ -141,7 +142,8 @@ const getProductDetails = async (req, res) => {
                    email: review.email,
                    reviewTitle: review.reviewTitle,
                    reviewText: review.reviewText,
-                   reviewPictures: review.reviewPictures
+                   reviewPictures: review.reviewPictures,
+                   createdAt: review.createdAt
                 }]
                 reviewRatingMap[review.productAttributeId] = []
                 reviewRatingMap[review.productAttributeId].push(review.rating)
