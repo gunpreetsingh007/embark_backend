@@ -9,7 +9,9 @@ const {
   removeWishlistItem,
   getWishlistItemById,
   getAddressById,
-  getCurrentUserDetails
+  getCurrentUserDetails,
+  getAllOrders,
+  getOrderById
 } = require("../controllers/user.controller");
 var router = express.Router();
 
@@ -23,5 +25,7 @@ router.get("/getWishlist", getWishlists);
 router.get("/getWishlistItemById/:productId", getWishlistItemById);
 router.post("/addWishlistItem", addWishlistItem);
 router.delete("/removeWishlistItem", removeWishlistItem);
+router.get("/getAllOrders", getAllOrders);
+router.get("/getOrderById/:id", getOrderById);
 
 module.exports = router;

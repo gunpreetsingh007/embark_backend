@@ -2,6 +2,7 @@ var User = require("../database/models").User;
 var Address = require("../database/models").Address;
 var Wishlist = require("../database/models").Wishlist;
 var Product = require("../database/models").Product
+var Order = require("../database/models").Order;
 const { Op } = require("sequelize");
 const bcrypt = require("bcrypt");
 
@@ -80,17 +81,17 @@ const updateUser = async (req, res) => {
 }
 
 const getAddresses = async (req, res) => {
-    try {
+  try {
 
-        let addresses = await Address.findAll({
-            where: { userId: req.currentUser.id },
-            raw: true
-        })
+    let addresses = await Address.findAll({
+      where: { userId: req.currentUser.id },
+      raw: true
+    })
 
-        return res.status(200).json({ "statusCode": 200, data: addresses })
-    }
+    return res.status(200).json({ "statusCode": 200, data: addresses })
+  }
   catch (error) {
-        return res.status(500).json({ "errorMessage": "Something Went Wrong" })
+    return res.status(500).json({ "errorMessage": "Something Went Wrong" })
   }
 }
 
@@ -246,15 +247,50 @@ const getCurrentUserDetails = async (req, res) => {
       where: {
         id: req.currentUser.id,
       },
-      attributes: ["role","id","firstName","lastName","email","phoneNumber"]
+      attributes: ["role", "id", "firstName", "lastName", "email", "phoneNumber"]
     });
 
-    if(!currentUser){
+    if (!currentUser) {
       return res.status(401).json({ errorMessage: "Please sign in again" });
     }
 
     return res.status(200).json({ statusCode: 200, data: currentUser });
   } catch (error) {
+    return res.status(500).json({ errorMessage: "Something Went Wrong" });
+  }
+}
+
+const getAllOrders = async (req, res) => {
+  try {
+    const result = await Order.findAll({
+      where: {
+        userId: req.currentUser.id
+      },
+      attributes: ["id", "orderDetails", "orderTotalAmount", "orderStatus", "placedAt"]
+    })
+    return res.status(200).json({ statusCode: 200, data: result });
+  }
+  catch (error) {
+    return res.status(500).json({ errorMessage: "Something Went Wrong" });
+  }
+}
+
+const getOrderById = async (req, res) => {
+  try {
+    const id = req.params.id
+    const result = await Order.findOne({
+      where: {
+        id,
+        userId: req.currentUser.id
+      },
+      attributes: ["addressDetails", "orderDetails", "orderStatus", "orderAmountWithoutDiscount", "deliveryCharges", "orderTotalAmount", "orderAmount"]
+    })
+    if (result)
+      return res.status(200).json({ statusCode: 200, data: result });
+    else
+      return res.status(500).json({ statusCode: 500, errorMessage: "Something Went Wrong" })
+  }
+  catch (error) {
     return res.status(500).json({ errorMessage: "Something Went Wrong" });
   }
 }
@@ -269,5 +305,7 @@ module.exports = {
   addWishlistItem,
   removeWishlistItem,
   getWishlistItemById,
-  getCurrentUserDetails
+  getCurrentUserDetails,
+  getAllOrders,
+  getOrderById
 }
