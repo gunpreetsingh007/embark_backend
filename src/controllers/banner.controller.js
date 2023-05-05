@@ -29,7 +29,39 @@ const updateBanner = async (req, res) => {
     }
 }
 
+const getAllBanners = async (req, res) => {
+    try {
+        let banners = await Banner.findAll({
+            raw: true
+        });    
+        return res.status(200).json({ "statusCode": 200, data: banners })
+    }
+    catch (err) {
+        return res.status(500).json({ "errorMessage": "Something Went Wrong" })
+    }
+}
+
+const getBannerDetails = async (req, res) => {
+    try {
+        let banner = await Banner.findOne({
+            where: {
+              id: req.params.id
+            },
+            raw: true
+        })
+        if(!banner){
+            return res.status(500).json({ "errorMessage": "Invalid Id" })
+        }   
+        return res.status(200).json({ "statusCode": 200, data: banner })
+    }
+    catch (err) {
+        return res.status(500).json({ "errorMessage": "Something Went Wrong" })
+    }
+}
+
 module.exports = {
     createBanner,
     updateBanner,
+    getAllBanners,
+    getBannerDetails
 }

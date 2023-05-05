@@ -5,7 +5,7 @@ module.exports = function (sequelize, Sequelize) {
             primaryKey: true,
             defaultValue: Sequelize.UUIDV4
         },
-        productLink: {
+        pageLink: {
             type: Sequelize.TEXT,
             allowNull: false
         },
@@ -30,8 +30,5 @@ module.exports = function (sequelize, Sequelize) {
             defaultValue: false
         }
     });
-    BannerSchema.associate = models => {
-        BannerSchema.belongsTo(models.Product, { foreignKey: 'productId', });
-    }
     return BannerSchema;
 }
