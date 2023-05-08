@@ -50,6 +50,7 @@ const getPopupById = async (req, res) => {
 const getAllPopups = async (req, res) => {
     try {
         let popups = await Popup.findAll({
+            order: [["minimumAmount", "ASC"]],
             raw: true
         })  
         return res.status(200).json({ "statusCode": 200, data: popups })

@@ -7,6 +7,6 @@ var router = express.Router();
 router.post("/createPopup", validateToken, admin, createPopup);
 router.put("/updatePopup", validateToken, admin, updatePopup);
 router.get("/getPopupById/:id", validateToken, admin, getPopupById);
-router.get("/getAllPopups", validateToken, admin, getAllPopups);
+router.get("/getAllPopups", getAllPopups);
 
 module.exports = router;

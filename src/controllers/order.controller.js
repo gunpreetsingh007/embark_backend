@@ -1,6 +1,7 @@
 const isEqual = require('lodash.isequal');
 const moment = require("moment")
 var Order = require('../database/models').Order;
+var Popup = require('../database/models').Popup;
 var User = require('../database/models').User;
 var Product = require('../database/models').Product;
 var nodemailer = require('nodemailer');
@@ -223,7 +224,7 @@ const generateOrderObject = async (req, payload, razorpayDetails=null)=>{
             if(!product){
                 throw new Error("Error in generate Order Object")
             }
-            let selectedProductVariant = product.productDetails.find(e => isEqual(e.attributeCombination, item.attributeCombination))
+            let selectedProductVariant = product.productDetails.find(e => isEqual(e.attributeCombination, item.attributeCombination) && e.isActive )
             if(!selectedProductVariant){
                 throw new Error("Error in generate Order Object")
             }
@@ -243,6 +244,11 @@ const generateOrderObject = async (req, payload, razorpayDetails=null)=>{
             orderAmountWithoutDiscount += selectedProductVariant.productPrice * item.count
             orderDetails.push(obj)
         })
+
+        let freeProducts = await getFreeProducts(orderAmount)
+        if(freeProducts.length){
+            orderDetails = [...orderDetails, ...freeProducts]
+        }
 
         if(orderAmount < 500){
             deliveryCharges = 50
@@ -271,6 +277,40 @@ const generateOrderObject = async (req, payload, razorpayDetails=null)=>{
    catch(err){
        throw err
    }
+}
+
+const getFreeProducts = async (orderAmount) => {
+    try {
+        let popupApplied
+        let popups = await Popup.findAll({
+            order: [["minimumAmount", "DESC"]],
+            raw: true
+        })
+        popups.every((popup) => {
+            if (orderAmount >= popup.minimumAmount) {
+                popupApplied = popup
+                return false
+            }
+            else {
+                return true
+            }
+        })
+
+        if(!popupApplied) return []
+
+        let popupProducts = popupApplied.products.map(product => {
+            product.productDiscountPrice = 0
+            product.productPrice = 0
+            product.productImage = product.pictureUrl
+            delete product.pictureUrl
+            return product
+        })
+           
+        return popupProducts
+    }
+    catch (err) {
+        throw err
+    }
 }
 
 const paymentVerificationAndCreateOrder = async (req, res) => {
