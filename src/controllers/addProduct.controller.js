@@ -1,12 +1,27 @@
 var Hierarchy = require('../database/models').Hierarchy;
 var ProductAttributes = require('../database/models').ProductAttribute;
 var Product = require("../database/models").Product
+var ProductTag = require("../database/models").ProductTag
 
 const addProduct = async (req, res) => {
 
     try {
         
-        let newProduct = await Product.create(req.body);
+        let newProduct = await Product.create(req.body, {returning: true}).then(JSON.stringify).then(JSON.parse)
+        let searchTagsPayload = req.body.searchTags.map(item => {
+            return {
+                searchTags: item,
+                productId: newProduct.id
+            }
+        })
+
+        await ProductTag.destroy({
+            where: {
+                productId: newProduct.id
+            }
+        })
+
+        await ProductTag.bulkCreate(searchTagsPayload)
         
         return res.status(200).json({ statusCode: 200, data: newProduct })
     }
@@ -28,7 +43,21 @@ const updateProduct = async (req, res) => {
                 id
             }
         });
-        
+        let searchTagsPayload = req.body.searchTags.map(item => {
+            return {
+                searchTags: item,
+                productId: id
+            }
+        })
+
+        await ProductTag.destroy({
+            where: {
+                productId: id
+            }
+        })
+
+        await ProductTag.bulkCreate(searchTagsPayload)
+
         return res.status(200).json({ statusCode: 200, data: newProduct })
     }
     catch (err) {

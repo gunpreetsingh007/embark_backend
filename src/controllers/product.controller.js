@@ -1,5 +1,6 @@
 var Hierarchy = require('../database/models').Hierarchy;
 var Product = require("../database/models").Product
+var ProductTag = require("../database/models").ProductTag
 var Fragrance = require("../database/models").Fragrance
 const sequelize = require("sequelize");
 const Review = require('../database/models').Review;
@@ -161,6 +162,16 @@ const getProductDetails = async (req, res) => {
             }
         })
 
+        let searchTags = await ProductTag.findAll({
+            where: {
+                productId: product.id
+            },
+            attributes: ["searchTags"],
+            raw: true
+        })
+
+        product["searchTags"] = searchTags.map(item => item.searchTags)
+
         return res.status(200).json({ statusCode: 200, data: product })
     }
     catch (err) {
@@ -281,31 +292,39 @@ const searchProducts = async (req, res) => {
                 attributes: ["hierarchyName"]
             }],
             exclude: ["createdAt", "updatedAt", "isDeleted","hierarchyId"],
-            raw: true
         })
 
-        // let productsFromSecondQuery = await Product.findAll({
-        //     where: {
-        //         $or: [
-        //             sequelize.where(sequelize.col('productName'), 'REGEXP', `${req.query.q.split(" ").join("|")}`),
-        //             sequelize.where(sequelize.col('productDescription'), 'REGEXP', `${req.query.q.split(" ").join("|")}`),
-        //             sequelize.where(sequelize.col('Hierarchy.hierarchyName'), 'REGEXP', `${req.query.q.split(" ").join("|")}`)
-        //         ],
-        //         isDeleted: false
-        //     },
-        //     include: [{
-        //         model: Hierarchy,
-        //         attributes: ["hierarchyName"]
-        //     }],
-        //     exclude: ["createdAt", "updatedAt", "isDeleted","hierarchyId"],
-        //     raw: true
-        // })
+        let productsFromSecondQuery = await ProductTag.findAll({
+            where: {
+                $or: [
+                    sequelize.where(sequelize.col('searchTags'), 'LIKE', `%${req.query.q}%`),
+                ],
+                isDeleted: false
+            },
+            attributes: ["searchTags"],
+            include: [{
+                model: Product,
+                exclude: ["createdAt", "updatedAt", "isDeleted","hierarchyId"],
+                include: [{
+                    model: Hierarchy,
+                    attributes: ["hierarchyName"]
+                }]
+            }]
+        })
 
-        let productsFromSecondQuery = []
+        let combinedProducts = [...productsFromFirstQuery, ...productsFromSecondQuery.map(item => item.Product)]
 
-        let combinedProducts = [...productsFromFirstQuery, ...productsFromSecondQuery]
+        combinedProducts = JSON.parse(JSON.stringify(combinedProducts))
 
-        let uniqueProducts = [...new Set(combinedProducts)];
+        combinedProducts = combinedProducts.map(item => {
+            item["Hierarchy.hierarchyName"] = item.Hierarchy.hierarchyName
+            delete item.Hierarchy
+            return item
+        })
+
+        let uniqueProducts = combinedProducts.filter(function({id}) {
+            return !this.has(id) && this.add(id);
+          }, new Set);
      
         if (uniqueProducts.length == 0) {
             return res.status(200).json({ statusCode: 200, data: [] })
