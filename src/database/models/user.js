@@ -25,10 +25,14 @@ module.exports = function(sequelize, Sequelize) {
         },
         password: { 
           type: Sequelize.TEXT, 
-          allowNull: false
+          allowNull: true
         },
         fcmToken: { 
           type: Sequelize.TEXT, 
+          allowNull: true
+        },
+        googleAuth: { 
+          type: Sequelize.JSON, 
           allowNull: true
         },
         role: { 

@@ -79,6 +79,56 @@ const createUser = async (req, res) => {
     }
 }
 
+const loginWithGoogle = async (req, res) => {
+    try {
+        const {email,family_name,given_name} = req.body;
+        let user
+        const result = await User.findOne({
+            where: {
+                email: email
+            },
+            raw: true
+        })
+
+        if (result) {
+            await User.update(
+                {
+                  firstName: given_name,
+                  lastName: family_name,
+                  googleAuth:req.body
+                },
+                {
+                  where: {
+                    email: email
+                  }
+                })
+                user = {
+                    id: result.id,
+                    firstName: given_name,
+                    lastName: family_name,
+                    phoneNumber: result.phoneNumber,
+                    role: result.role,
+                    email
+                }
+        }
+        else{
+            user = await User.create({
+                firstName: given_name,
+                lastName: family_name,
+                email: email,
+                googleAuth: req.body,
+                role: 'user'
+            },
+                { returning: true }).then(JSON.stringify).then(JSON.parse)
+        }
+        const accessToken = createToken(user)
+        return res.status(200).json({ "statusCode": 200, "message": "Login with google is completed", accessToken, id: user.id, role: user.role, firstName: user.firstName, lastName: user.lastName, email: user.email, contact: user.phoneNumber })
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({ "errorMessage": "Something Went Wrong" })
+    }
+}
+
 const checkByUsername = async (req, res) => {
     try {
         const username = req.params.username
@@ -185,5 +235,6 @@ module.exports = {
     checkByUsername,
     forgetPassword,
     verifyforgetToken,
-    resetPassword
+    resetPassword,
+    loginWithGoogle
 }
