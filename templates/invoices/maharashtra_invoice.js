@@ -92,6 +92,7 @@ const generateMaharashtraInvoiceHtml = (order) => {
             <td class="w-50 p-2" style="vertical-align: baseline;">
                 <div>Buyer</div>
                 <p>
+                   ${order.addressDetails.billingAddress.firstName} ${order.addressDetails.billingAddress.lastName} <br> 
                    ${order.addressDetails.billingAddress.streetAddress}<br>${order.addressDetails.billingAddress.landmark}
                 </p>
                 <div>State Name: ${order.addressDetails.billingAddress.state}, Code: ${order.addressDetails.billingAddress.pincode}</div>
@@ -157,6 +158,7 @@ const generateMaharashtraInvoiceHtml = (order) => {
             <td class="w-50 p-2">
                 <div>Delivery Address</div>
                 <p>
+                    ${order.addressDetails.shippingAddress.firstName} ${order.addressDetails.shippingAddress.lastName} <br>        
                     ${order.addressDetails.shippingAddress.streetAddress}<br>${order.addressDetails.shippingAddress.landmark}
                 </p>
                 <div>State Name: ${order.addressDetails.shippingAddress.state}, Code: ${order.addressDetails.shippingAddress.pincode}</div>

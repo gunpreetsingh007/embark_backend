@@ -510,17 +510,6 @@ const generateOrderPlacedHtml = (order, firstName, lastName) => {
                                 </td>
                               </tr>
                               <tr>
-                                <td align="center" class="es-m-txt-c" style="padding:0;Margin:0;padding-top:30px"><!--[if mso]><a href="https://viewstripo.email" target="_blank" hidden>
-	<v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" esdevVmlButton href="https://viewstripo.email" 
-                style="height:39px; v-text-anchor:middle; width:142px" arcsize="13%" strokecolor="#ffffff" strokeweight="1px" fillcolor="#ffffff">
-		<w:anchorlock></w:anchorlock>
-		<center style='color:#386641; font-family:Raleway, Arial, sans-serif; font-size:14px; font-weight:400; line-height:14px;  mso-text-raise:1px'>View Order</center>
-	</v:roundrect></a>
-<![endif]--><!--[if !mso]><!-- --><span class="msohide es-button-border"
-                                    style="border-style:solid;border-color:#ffffff;background:#ffffff;border-width:1px;display:inline-block;border-radius:5px;width:auto;mso-border-alt:10px;mso-hide:all"><a
-                                      href="https://viewstripo.email" class="es-button" target="_blank"
-                                      style="mso-style-priority:100 !important;text-decoration:none;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;color:#386641;font-size:16px;display:inline-block;background:#ffffff;border-radius:5px;font-family:Raleway, Arial, sans-serif;font-weight:normal;font-style:normal;line-height:19px;width:auto;text-align:center;padding:10px 30px 10px 30px;border-color:#ffffff">View
-                                      Order</a></span><!--<![endif]--></td>
                               </tr>
                             </table>
                           </td>

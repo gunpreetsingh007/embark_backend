@@ -400,6 +400,22 @@ const sendEmail = async (order, firstName, lastName) => {
 
         let emailHtml = generateOrderPlacedHtml(order, firstName, lastName)
 
+
+        var mailOptions = {
+            from: process.env.EMAIL_USERNAME,
+            to: order.addressDetails.shippingAddress.email,
+            subject: 'Order Placed!',
+            html: emailHtml
+        };
+
+        transporter.sendMail(mailOptions, function (error, info) {
+            if (error) {
+                console.log(error);
+            } else {
+                console.log('Email sent to User');
+            }
+        });
+
         const browser = await puppeteer.launch({
             executablePath: '/usr/bin/chromium-browser'
         });
@@ -431,9 +447,9 @@ const sendEmail = async (order, firstName, lastName) => {
             }
         })
 
-        var mailOptions = {
+        mailOptions = {
             from: process.env.EMAIL_USERNAME,
-            to: order.addressDetails.shippingAddress.email,
+            to:  "warehouse01@divinecosmetics.org, vpatil@divinecosmetics.org, spatil@divinecosmetics.org",
             subject: 'Order Placed!',
             html: emailHtml,
             attachments: [
@@ -448,7 +464,7 @@ const sendEmail = async (order, firstName, lastName) => {
             if (error) {
                 console.log(error);
             } else {
-                console.log('Email sent');
+                console.log('Email sent to Warehouse');
             }
         });
     }
