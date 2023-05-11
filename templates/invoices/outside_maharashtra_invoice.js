@@ -1,6 +1,6 @@
 const moment = require("moment")
 const { ToWords } = require('to-words');
-const generateOutsideMaharashtraInvoiceHtml = (order) => {
+const generateOutsideMaharashtraInvoiceHtml = (order,type) => {
     let hsnAggregate = {}
     order.orderDetails.map((order)=>{
         if(hsnAggregate[order.hsnNumber]){
@@ -83,7 +83,7 @@ const generateOutsideMaharashtraInvoiceHtml = (order) => {
     <div class="container">
     <div class="h1 text-center">DIVINE COSMETICS LLP</div>
     <div class="address text-center">NISHUVI, 3rd Floor, 3-B 75, Dr. Annie Besant Road, Worli, Mumbai 400018</div>
-    <div class="mt-2 taxInvoiceTitle" style="text-align:center; font-weight:600; color:#000;"> Tax Invoice </div>
+    <div class="mt-2 taxInvoiceTitle" style="text-align:center; font-weight:600; color:#000;"> ${type == "user" ? "Proforma invoice" : "Tax Invoice"} </div>
     <table class="mt-2 w-100">
         <tr>
             <td class="w-50 p-2" style="vertical-align: baseline;">

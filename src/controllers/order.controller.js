@@ -392,10 +392,10 @@ const sendEmail = async (order, firstName, lastName) => {
         let invoiceHtml
 
         if(order.addressDetails.shippingAddress.state.toLowerCase() == "maharashtra"){
-            invoiceHtml = generateMaharashtraInvoiceHtml(order)           
+            invoiceHtml = generateMaharashtraInvoiceHtml(order,"user")           
         }
         else{
-            invoiceHtml = generateOutsideMaharashtraInvoiceHtml(order)
+            invoiceHtml = generateOutsideMaharashtraInvoiceHtml(order,"user")
         }
 
         let emailHtml = generateOrderPlacedHtml(order, firstName, lastName)
@@ -405,7 +405,13 @@ const sendEmail = async (order, firstName, lastName) => {
             from: process.env.EMAIL_USERNAME,
             to: order.addressDetails.shippingAddress.email,
             subject: 'Order Placed!',
-            html: emailHtml
+            html: emailHtml,
+            attachments: [
+                {
+                    filename: 'invoice.pdf',
+                    content: Buffer.from(await returnBufferFromPuppeteerUsingHtml(invoiceHtml))
+                }
+            ]
         };
 
         transporter.sendMail(mailOptions, function (error, info) {
@@ -416,46 +422,31 @@ const sendEmail = async (order, firstName, lastName) => {
             }
         });
 
-        const browser = await puppeteer.launch({
-            executablePath: '/usr/bin/chromium-browser'
-        });
+        // await Order.update({
+        //     invoiceId: pdfName
+        // },{
+        //     where: {
+        //         id: order.id
+        //     }
+        // })
 
-        const page = await browser.newPage();
-
-        await page.setContent(invoiceHtml, { waitUntil: 'domcontentloaded' });
-
-        await page.emulateMediaType('screen');
-
-        const elem = await page.$("html"); 
-        const boundingBox = await elem.boundingBox(); 
-        const pdfName = v4();
-
-        const pdf = await page.pdf({
-            path: `invoices/${pdfName}.pdf`,
-            margin: { right: '30px', left: '30px' },
-            printBackground: true,
-            height: `${boundingBox.height}px`,
-        });
-
-        await browser.close();
-
-        await Order.update({
-            invoiceId: pdfName
-        },{
-            where: {
-                id: order.id
-            }
-        })
+        if(order.addressDetails.shippingAddress.state.toLowerCase() == "maharashtra"){
+            invoiceHtml = generateMaharashtraInvoiceHtml(order,"warehouse")           
+        }
+        else{
+            invoiceHtml = generateOutsideMaharashtraInvoiceHtml(order,"warehouse")
+        }
 
         mailOptions = {
             from: process.env.EMAIL_USERNAME,
+            // to: "gunpreetsingh077@gmail.com",
             to:  "warehouse01@divinecosmetics.org, vpatil@divinecosmetics.org, spatil@divinecosmetics.org",
             subject: 'Order Placed!',
             html: emailHtml,
             attachments: [
                 {
                     filename: 'invoice.pdf',
-                    path: `invoices/${pdfName}.pdf`
+                    content: Buffer.from(await returnBufferFromPuppeteerUsingHtml(invoiceHtml))
                 }
             ]
         };
@@ -471,6 +462,38 @@ const sendEmail = async (order, firstName, lastName) => {
     catch (err) {
        console.log(err)
        console.log("Error while sending mail")
+    }
+}
+
+const returnBufferFromPuppeteerUsingHtml = async (html) => {
+    try {
+        const browser = await puppeteer.launch({
+            executablePath: '/usr/bin/chromium-browser'
+        });
+
+        const page = await browser.newPage();
+
+        await page.setContent(html, { waitUntil: 'domcontentloaded' });
+
+        await page.emulateMediaType('screen');
+
+        const elem = await page.$("html");
+        const boundingBox = await elem.boundingBox();
+        // const pdfName = v4();
+
+        const pdf = await page.pdf({
+            // path: `invoices/${pdfName}.pdf`,
+            margin: { right: '30px', left: '30px' },
+            printBackground: true,
+            height: `${boundingBox.height}px`,
+        });
+
+        await browser.close();
+
+        return pdf;
+    }
+    catch (err) {
+        throw err
     }
 }
 
