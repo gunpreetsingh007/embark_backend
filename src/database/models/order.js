@@ -67,7 +67,7 @@ module.exports = function (sequelize, Sequelize) {
       allowNull: false
     },
     invoiceId: {
-      type: Sequelize.UUID,
+      type: Sequelize.JSON,
       allowNull: true
     },
     purchaseCount: {

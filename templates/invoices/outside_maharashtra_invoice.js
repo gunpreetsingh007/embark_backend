@@ -249,7 +249,7 @@ const generateOutsideMaharashtraInvoiceHtml = (order,type) => {
                         <td class="" style="width:50%; text-align: end;">Total</td>
                         <td style="width:10%">&nbsp;</td>
                         <td style="width:7%; text-align:right;">${order.orderDetails.map(item=>item.count).reduce(function (x, y) {
-                            return x + y;
+                            return parseInt(x) + parseInt(y);
                         }, 0)} Pcs</td>
                         <td style="width:10%">&nbsp;</td>
                         <td style="width:5%">&nbsp;</td>

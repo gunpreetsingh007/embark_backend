@@ -400,6 +400,7 @@ const sendEmail = async (order, firstName, lastName) => {
 
         let emailHtml = generateOrderPlacedHtml(order, firstName, lastName)
 
+        let userInvoice = await returnBufferFromPuppeteerUsingHtml(invoiceHtml)
 
         var mailOptions = {
             from: process.env.EMAIL_USERNAME,
@@ -409,7 +410,7 @@ const sendEmail = async (order, firstName, lastName) => {
             attachments: [
                 {
                     filename: 'invoice.pdf',
-                    content: Buffer.from(await returnBufferFromPuppeteerUsingHtml(invoiceHtml))
+                    path: `invoices/${userInvoice}.pdf`
                 }
             ]
         };
@@ -422,20 +423,14 @@ const sendEmail = async (order, firstName, lastName) => {
             }
         });
 
-        // await Order.update({
-        //     invoiceId: pdfName
-        // },{
-        //     where: {
-        //         id: order.id
-        //     }
-        // })
-
         if(order.addressDetails.shippingAddress.state.toLowerCase() == "maharashtra"){
             invoiceHtml = generateMaharashtraInvoiceHtml(order,"warehouse")           
         }
         else{
             invoiceHtml = generateOutsideMaharashtraInvoiceHtml(order,"warehouse")
         }
+
+        let warehouseInvoice = await returnBufferFromPuppeteerUsingHtml(invoiceHtml)
 
         mailOptions = {
             from: process.env.EMAIL_USERNAME,
@@ -446,7 +441,7 @@ const sendEmail = async (order, firstName, lastName) => {
             attachments: [
                 {
                     filename: 'invoice.pdf',
-                    content: Buffer.from(await returnBufferFromPuppeteerUsingHtml(invoiceHtml))
+                    path: `invoices/${warehouseInvoice}.pdf`
                 }
             ]
         };
@@ -458,6 +453,18 @@ const sendEmail = async (order, firstName, lastName) => {
                 console.log('Email sent to Warehouse');
             }
         });
+
+        await Order.update({
+            invoiceId: {
+                userInvoice,
+                warehouseInvoice
+            }
+        }, {
+            where: {
+                id: order.id
+            }
+        })
+
     }
     catch (err) {
        console.log(err)
@@ -479,10 +486,10 @@ const returnBufferFromPuppeteerUsingHtml = async (html) => {
 
         const elem = await page.$("html");
         const boundingBox = await elem.boundingBox();
-        // const pdfName = v4();
+        const pdfName = v4();
 
         const pdf = await page.pdf({
-            // path: `invoices/${pdfName}.pdf`,
+            path: `invoices/${pdfName}.pdf`,
             margin: { right: '30px', left: '30px' },
             printBackground: true,
             height: `${boundingBox.height}px`,
@@ -490,7 +497,7 @@ const returnBufferFromPuppeteerUsingHtml = async (html) => {
 
         await browser.close();
 
-        return pdf;
+        return pdfName;
     }
     catch (err) {
         throw err
