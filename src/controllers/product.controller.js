@@ -115,7 +115,7 @@ const getProductDetails = async (req, res) => {
 
         let allReviews = await Review.findAll({
             where: {
-                productId: req.params.id,
+                productId: product.id,
                 isApproved: true
             },
             raw: true
