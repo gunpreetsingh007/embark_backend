@@ -35,19 +35,19 @@ const getProductsByHierarchies = async (req, res) => {
 
 const getProductsByMajorHierarchy = async (req, res) => {
     try {
-        if (!req.params.id) {
-            return res.status(500).json({ "errorMessage": "No Id provided" })
+        if (!req.params.name) {
+            return res.status(500).json({ "errorMessage": "No name provided" })
         }
         let selectedHierarchy = await Hierarchy.findOne({
             where: {
-                id: req.params.id,
+                hierarchyName: req.params.name,
                 isDeleted: false
             },
             attributes: ["id", "hierarchyName"],
             raw: true
         })
         if (!selectedHierarchy) {
-            return res.status(500).json({ "errorMessage": "Wrong Id provided" })
+            return res.status(500).json({ "errorMessage": "Wrong name provided" })
         }
         let hierarchyIds = []
         let childHierarchies = await Hierarchy.findAll({
@@ -89,12 +89,12 @@ const getProductsByMajorHierarchy = async (req, res) => {
 
 const getProductDetails = async (req, res) => {
     try {
-        if (!req.params.id) {
-            return res.status(500).json({ "errorMessage": "No Id provided" })
+        if (!req.params.name) {
+            return res.status(500).json({ "errorMessage": "No name provided" })
         }
         let product = await Product.findOne({
             where: {
-                id:req.params.id,
+                productName: req.params.name,
                 isDeleted: false
             },
             include: [{
@@ -110,7 +110,7 @@ const getProductDetails = async (req, res) => {
         })
         if(!product)
         {
-            return res.status(500).json({ "errorMessage": "Invalid Id" })
+            return res.status(500).json({ "errorMessage": "Invalid name" })
         }
 
         let allReviews = await Review.findAll({
@@ -243,14 +243,24 @@ const getChildHierarchiesIds = async (hierarchyArray, index, hierarchyIdsArr) =>
 
 const getProductsByFragrance = async (req, res) => {
     try {
-        if (!req.params.id) {
-            return res.status(500).json({ "errorMessage": "No Id provided" })
+        if (!req.params.name) {
+            return res.status(500).json({ "errorMessage": "No name provided" })
         }
 
         let result = []
+        let fragrance = await Fragrance.findOne({
+            where: {
+                fragranceName: req.params.name
+            },
+            attributes: ["id"],
+            raw: true
+        })
+        if(!fragrance){
+            return res.status(500).json({ "errorMessage": "Wrong fragrance name provided" })
+        }
         let products = await Product.findAll({
             where: {
-                fragranceId: req.params.id,
+                fragranceId: fragrance.id,
                 isDeleted: false
             },
             exclude: ["createdAt", "updatedAt", "isDeleted","hierarchyId"],
@@ -687,7 +697,7 @@ const updateProductGender = async (req, res) => {
 const getProductsByGender = async (req, res) => {
     try {
         let gender = req.params.gender;
-        if(!["Men", "Women", "Unisex"].includes(gender)){
+        if(!["men", "women", "unisex"].includes(gender)){
             return res.status(500).json({ "errorMessage": "Invalid Gender" })
         }
         let result = []

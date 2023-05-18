@@ -18,21 +18,21 @@ const getMajorCategories = async (req, res) => {
     }
 }
 
-const getHierarchyTreeById = async (req, res) => {
+const getHierarchyTreeByName = async (req, res) => {
     try {
-        if (!req.params.id) {
-            return res.status(500).json({ "errorMessage": "No Id provided" })
+        if (!req.params.name) {
+            return res.status(500).json({ "errorMessage": "No name provided" })
         }
         let selectedHierarchy = await Hierarchy.findOne({
             where: {
-                id: req.params.id,
+                hierarchyName: req.params.name,
                 isDeleted: false
             },
             attributes: ["id", "hierarchyName"],
             raw: true
         })
         if (!selectedHierarchy) {
-            return res.status(500).json({ "errorMessage": "Wrong Id provided" })
+            return res.status(500).json({ "errorMessage": "Wrong name provided" })
         }
         let childHierarchies = await Hierarchy.findAll({
             where: {
@@ -78,15 +78,15 @@ const getChildHierarchies = async (hierarchyArray, index) => {
 
 }
 
-const getHierarchyDetailsById = async (req,res) => {
+const getHierarchyDetailsByName = async (req,res) => {
 
     try {
-        if (!req.params.id) {
-            return res.status(500).json({ "errorMessage": "No Id provided" })
+        if (!req.params.name) {
+            return res.status(500).json({ "errorMessage": "No name provided" })
         }
         let selectedHierarchy = await Hierarchy.findOne({
             where: {
-                id: req.params.id,
+                hierarchyName: req.params.name,
                 isDeleted: false
             },
             attributes: ["id", "hierarchyName"],
@@ -123,8 +123,8 @@ const getAllFragrances = async (req,res) => {
 
 module.exports = {
     getMajorCategories,
-    getHierarchyTreeById,
-    getHierarchyDetailsById,
+    getHierarchyTreeByName,
+    getHierarchyDetailsByName,
     getAllFragrances
 }
 

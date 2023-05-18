@@ -5,11 +5,11 @@ const { admin } = require('../middlewares/admin');
 var router = express.Router();
 
 router.get("/getProductsByHierarchies", getProductsByHierarchies);
-router.get("/getProductsByMajorHierarchy/:id", getProductsByMajorHierarchy);
-router.get("/getProductDetails/:id", getProductDetails);
+router.get("/getProductsByMajorHierarchy/:name", getProductsByMajorHierarchy);
+router.get("/getProductDetails/:name", getProductDetails);
 router.get("/bestSellerProducts", bestSellerProducts);
 router.post("/getProductsInCart",getProductsInCart);
-router.get("/getProductsByFragrance/:id", getProductsByFragrance);
+router.get("/getProductsByFragrance/:name", getProductsByFragrance);
 router.get("/searchProducts", searchProducts);
 router.get("/getAllProducts", getAllProducts);
 router.post("/editProductAttributeColumns", validateToken, admin, editProductAttributeColumn);

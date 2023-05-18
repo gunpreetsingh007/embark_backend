@@ -1,10 +1,10 @@
 var express = require('express');
-const { getMajorCategories, getHierarchyTreeById, getHierarchyDetailsById, getAllFragrances } = require('../controllers/hierarchy.controller');
+const { getMajorCategories, getHierarchyTreeByName, getHierarchyDetailsByName, getAllFragrances } = require('../controllers/hierarchy.controller');
 var router = express.Router();
 
 router.get("/getMajorCategories", getMajorCategories);
-router.get("/getHierarchyTreeById/:id", getHierarchyTreeById);
-router.get("/getHierarchyDetailsById/:id", getHierarchyDetailsById);
+router.get("/getHierarchyTreeByName/:name", getHierarchyTreeByName);
+router.get("/getHierarchyDetailsByName/:name", getHierarchyDetailsByName);
 router.get("/getAllFragrances", getAllFragrances)
 
 
