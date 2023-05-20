@@ -26,6 +26,7 @@ const getHierarchyTreeByName = async (req, res) => {
         let selectedHierarchy = await Hierarchy.findOne({
             where: {
                 hierarchyName: req.params.name,
+                parentId: null,
                 isDeleted: false
             },
             attributes: ["id", "hierarchyName"],
@@ -87,6 +88,7 @@ const getHierarchyDetailsByName = async (req,res) => {
         let selectedHierarchy = await Hierarchy.findOne({
             where: {
                 hierarchyName: req.params.name,
+                parentId: null,
                 isDeleted: false
             },
             attributes: ["id", "hierarchyName"],

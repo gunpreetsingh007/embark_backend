@@ -41,6 +41,7 @@ const getProductsByMajorHierarchy = async (req, res) => {
         let selectedHierarchy = await Hierarchy.findOne({
             where: {
                 hierarchyName: req.params.name,
+                parentId: null,
                 isDeleted: false
             },
             attributes: ["id", "hierarchyName"],
