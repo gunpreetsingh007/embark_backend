@@ -480,7 +480,7 @@ const returnBufferFromPuppeteerUsingHtml = async (html) => {
 
         const page = await browser.newPage();
 
-        await page.setContent(html, { waitUntil: 'domcontentloaded' });
+        await page.setContent(html, { waitUntil: 'networkidle0' });
 
         await page.emulateMediaType('screen');
 

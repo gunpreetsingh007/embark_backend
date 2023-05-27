@@ -5,13 +5,13 @@ const generateMaharashtraInvoiceHtml = (order,type) => {
     let hsnAggregate = {}
     order.orderDetails.map((order)=>{
         if(hsnAggregate[order.hsnNumber]){
-            hsnAggregate[order.hsnNumber].taxableValue += order.productDiscountPrice*order.count - 18/100*order.productDiscountPrice*order.count
-            hsnAggregate[order.hsnNumber].totalTaxAmount += 18/100*order.productDiscountPrice*order.count
+            hsnAggregate[order.hsnNumber].taxableValue += order.productDiscountPrice*order.count * 100/118
+            hsnAggregate[order.hsnNumber].totalTaxAmount += 18/118*order.productDiscountPrice*order.count
         }
         else{
             hsnAggregate[order.hsnNumber] = {}
-            hsnAggregate[order.hsnNumber].taxableValue = order.productDiscountPrice*order.count - 18/100*order.productDiscountPrice*order.count
-            hsnAggregate[order.hsnNumber].totalTaxAmount = 18/100*order.productDiscountPrice*order.count
+            hsnAggregate[order.hsnNumber].taxableValue = order.productDiscountPrice*order.count * 100/118
+            hsnAggregate[order.hsnNumber].totalTaxAmount = 18/118*order.productDiscountPrice*order.count
         }
     })
     const returnHsnTable = ()=>{
@@ -173,10 +173,10 @@ const generateMaharashtraInvoiceHtml = (order,type) => {
                         <td style="width:40%">${order.productName} - ${Object.values(order.attributeCombination)}</td>
                         <td style="width:10%; text-align:right;">${order.hsnNumber}</td>
                         <td class="fw-bold" style="width:7%; text-align:right;">${order.count} Pcs</td>
-                        <td style="width:10%; text-align:right;">${(order.productDiscountPrice*order.count- 18/100*order.productDiscountPrice*order.count).toFixed(2)}</td>
+                        <td style="width:10%; text-align:right;">${(order.productDiscountPrice*order.count * 100/118).toFixed(2)}</td>
                         <td style="width:5%; text-align:right;">Pcs</td>
                         <td style="width:5%">&nbsp;</td>
-                        <td class="fw-bold" style="width:10%; text-align:right;">${(order.productDiscountPrice*order.count - 18/100*order.productDiscountPrice*order.count).toFixed(2)}</td>
+                        <td class="fw-bold" style="width:10%; text-align:right;">${(order.productDiscountPrice*order.count * 100/118).toFixed(2)}</td>
                     </tr>`
                 )
             }).join('')}
@@ -211,7 +211,7 @@ const generateMaharashtraInvoiceHtml = (order,type) => {
                     <td style="text-align:right;">9</td>
                     <td style="text-align:right;">%</td>
                     <td>&nbsp;</td>
-                    <td class="fw-bold" style="text-align:right;">${(18/100*order.orderAmount/2).toFixed(2)}</td>
+                    <td class="fw-bold" style="text-align:right;">${(18/118*order.orderAmount/2).toFixed(2)}</td>
                 </tr>
                 <tr>
                     <td class="w-auto">&nbsp;</td>
@@ -222,7 +222,7 @@ const generateMaharashtraInvoiceHtml = (order,type) => {
                     <td style="text-align:right;">9</td>
                     <td style="text-align:right;">%</td>
                     <td>&nbsp;</td>
-                    <td class="fw-bold" style="text-align:right;">${(18/100*order.orderAmount/2).toFixed(2)}</td>
+                    <td class="fw-bold" style="text-align:right;">${(18/118*order.orderAmount/2).toFixed(2)}</td>
                 </tr>
                 <tr>
                 <td class="w-auto">&nbsp;</td>
@@ -311,24 +311,24 @@ const generateMaharashtraInvoiceHtml = (order,type) => {
                         <td class="w-50">
                             <div class="d-flex w-100">
                                <div class="text-center fw-bold" style="width:50%">Total</div>
-                               <div class="fw-bold" style="width:25%">${(order.orderAmount - 18/100*order.orderAmount).toFixed(2)}</div>
+                               <div class="fw-bold" style="width:25%">${(order.orderAmount * 100/118).toFixed(2)}</div>
                                <div class="fw-bold" style="width:25%">&nbsp;</div>
                             </div>
                         </td>
-                        <td class="fw-bold text-end" style="width:20%">${(18/100*order.orderAmount/2).toFixed(2)}</td>
+                        <td class="fw-bold text-end" style="width:20%">${(18/118*order.orderAmount/2).toFixed(2)}</td>
                         <td  style="width:18%">
                            <div class="d-flex">
                             <div class="text-center w-50">&nbsp;</div>
-                            <div class="text-end w-50 fw-bold" style="border-left:1px solid #000;">${(18/100*order.orderAmount/2).toFixed(2)}</div>
+                            <div class="text-end w-50 fw-bold" style="border-left:1px solid #000;">${(18/118*order.orderAmount/2).toFixed(2)}</div>
                            </div>
                         </td>
-                        <td class="fw-bold text-end">${(18/100*order.orderAmount).toFixed(2)}</td>
+                        <td class="fw-bold text-end">${(18/118*order.orderAmount).toFixed(2)}</td>
                     </tr>
                 </table>
                 <table class="w-100 mb-2">
                     <tr>
                         <td class="ps-2">
-                            <div>Tax Amount(in words) :  <span class="fw-bold">INR ${toWords.convert((18/100*order.orderAmount).toFixed(2))}</span></div>
+                            <div>Tax Amount(in words) :  <span class="fw-bold">INR ${toWords.convert((18/118*order.orderAmount).toFixed(2))}</span></div>
                             <div class="d-flex w-100">
                                 <div class="w-50">
                                     <div>Comapny's GSTIN/UIN  : <span class="fw-bold">27AAMFD6389H1ZV</span></div>
