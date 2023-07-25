@@ -15,6 +15,7 @@ const axios = new Axios();
 const puppeteer = require('puppeteer');
 const { v4 } = require('uuid');
 const { generateOutsideMaharashtraInvoiceHtml } = require('../../templates/invoices/outside_maharashtra_invoice');
+const { sequelize, Sequelize } = require('../database/models');
 const ProductsOrderIndex = require('../database/models').ProductsOrderIndex
 
 const random = (min, max) => Math.floor(Math.random() * (max - min)) + min;
@@ -103,8 +104,74 @@ const getOrders = async (req, res) => {
             order: [["id", "DESC"]],
             raw: true
         });
+     
+        const todayStats = await sequelize.query(
+            `SELECT SUM(SUBQUERY.orderTotalAmount) as value, SUM(SUBQUERY.totalCount) as units from
+                (
+                SELECT s.orderTotalAmount, SUM(t.count) totalCount 
+                FROM Orders s, 
+                        JSON_TABLE(orderDetails, '$[*]' COLUMNS (count INTEGER PATH '$.count')) t
+                WHERE s.placedAt >= '${moment().startOf("day").utc().format("YYYY-MM-DD HH:mm:ss")}' AND s.placedAt <= '${moment().endOf("day").utc().format("YYYY-MM-DD HH:mm:ss")}' AND orderStatus not in ("CANCELLED", "REFUNDED", "FAILED")
+                GROUP BY s.id
+                ORDER BY totalCount DESC
+                ) AS SUBQUERY`, { plain: true });
 
-        return res.status(200).json({ "statusCode": 200, "data": allOrders })
+        const currentMonthStats = await sequelize.query(
+            `SELECT SUM(SUBQUERY.orderTotalAmount) as value, SUM(SUBQUERY.totalCount) as units from
+                (
+                SELECT s.orderTotalAmount, SUM(t.count) totalCount 
+                FROM Orders s, 
+                        JSON_TABLE(orderDetails, '$[*]' COLUMNS (count INTEGER PATH '$.count')) t
+                WHERE s.placedAt >= '${moment().startOf("month").utc().format("YYYY-MM-DD HH:mm:ss")}' AND s.placedAt <= '${moment().endOf("month").utc().format("YYYY-MM-DD HH:mm:ss")}' AND orderStatus not in ("CANCELLED", "REFUNDED", "FAILED")
+                GROUP BY s.id
+                ORDER BY totalCount DESC
+                ) AS SUBQUERY`, { plain: true });
+
+        const lastMonthStats = await sequelize.query(
+            `SELECT SUM(SUBQUERY.orderTotalAmount) as value, SUM(SUBQUERY.totalCount) as units from
+                (
+                SELECT s.orderTotalAmount, SUM(t.count) totalCount 
+                FROM Orders s, 
+                        JSON_TABLE(orderDetails, '$[*]' COLUMNS (count INTEGER PATH '$.count')) t
+                WHERE s.placedAt >= '${moment().subtract(1, "month").startOf("month").utc().format("YYYY-MM-DD HH:mm:ss")}' AND s.placedAt <= '${moment().subtract(1, "month").endOf("month").utc().format("YYYY-MM-DD HH:mm:ss")}' AND orderStatus not in ("CANCELLED", "REFUNDED", "FAILED")
+                GROUP BY s.id
+                ORDER BY totalCount DESC
+                ) AS SUBQUERY`, { plain: true });
+
+        const thisYearStats = await sequelize.query(
+            `SELECT SUM(SUBQUERY.orderTotalAmount) as value, SUM(SUBQUERY.totalCount) as units from
+                (
+                SELECT s.orderTotalAmount, SUM(t.count) totalCount 
+                FROM Orders s, 
+                        JSON_TABLE(orderDetails, '$[*]' COLUMNS (count INTEGER PATH '$.count')) t
+                WHERE s.placedAt >= '${moment().startOf("year").utc().format("YYYY-MM-DD HH:mm:ss")}' AND s.placedAt <= '${moment().endOf("year").utc().format("YYYY-MM-DD HH:mm:ss")}' AND orderStatus not in ("CANCELLED", "REFUNDED", "FAILED")
+                GROUP BY s.id
+                ORDER BY totalCount DESC
+                ) AS SUBQUERY`, { plain: true });
+
+        const customStats = await sequelize.query(
+            `SELECT SUM(SUBQUERY.orderTotalAmount) as value, SUM(SUBQUERY.totalCount) as units from
+                (
+                SELECT s.orderTotalAmount, SUM(t.count) totalCount 
+                FROM Orders s, 
+                        JSON_TABLE(orderDetails, '$[*]' COLUMNS (count INTEGER PATH '$.count')) t
+                WHERE s.placedAt >= '${start ? moment(parseInt(start)).utc().format("YYYY-MM-DD HH:mm:ss") : moment().startOf("day").utc().format("YYYY-MM-DD HH:mm:ss")}' AND s.placedAt <= '${end ? moment(parseInt(end)).utc().format("YYYY-MM-DD HH:mm:ss") : moment().endOf("day").utc().format("YYYY-MM-DD HH:mm:ss")}' AND orderStatus not in ("CANCELLED", "REFUNDED", "FAILED")
+                GROUP BY s.id
+                ORDER BY totalCount DESC
+                ) AS SUBQUERY`, { plain: true });
+
+        const customerCount = await Order.find({
+            where: {
+                placedAt: {
+                    $gte: start ? moment(parseInt(start)) : moment().startOf("day"),
+                    $lte: end ? moment(parseInt(end)) : moment().endOf("day")
+                }
+            },
+            attributes: [[sequelize.literal('COUNT(DISTINCT(`userId`))'), "count"]],
+            raw: true
+        })
+
+        return res.status(200).json({ "statusCode": 200, "data": allOrders, "todayStats": todayStats, "currentMonthStats": currentMonthStats, "lastMonthStats": lastMonthStats, "thisYearStats": thisYearStats, "customStats": customStats, "customerCount": customerCount?.count })
     }
     catch (error) {
         return res.status(500).json({ "errorMessage": "Something Went Wrong" })
