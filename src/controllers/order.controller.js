@@ -3,6 +3,8 @@ const moment = require("moment")
 var Order = require('../database/models').Order;
 var Popup = require('../database/models').Popup;
 var User = require('../database/models').User;
+var Coupon = require('../database/models').Coupon;
+var CouponAssignment = require('../database/models').CouponAssignment;
 var Product = require('../database/models').Product;
 var nodemailer = require('nodemailer');
 const { generateOrderPlacedHtml } = require("../../templates/orderPlaced/index.js")
@@ -25,6 +27,14 @@ const createOrder = async (req, res) => {
     try {
         
         let orderPayload = await generateOrderObject(req, req.body)
+        let couponAppliedTemp = orderPayload.couponAmountTemp
+        let couponApplied = orderPayload.couponApplied
+        let couponId = orderPayload.couponId
+        let originalOrderAmount = orderPayload.originalOrderAmount
+        delete orderPayload.couponAmountTemp
+        delete orderPayload.couponApplied
+        delete orderPayload.couponId
+        delete orderPayload.originalOrderAmount
 
         if(req.body.paymentMethod == "RAZORPAY"){
             const options = {
@@ -45,7 +55,18 @@ const createOrder = async (req, res) => {
             }
         })
 
+        if(couponApplied){
+            await CouponAssignment.create({
+                userId: orderCreated.userId,
+                couponId: couponId,
+                orderId: orderCreated.id
+            })
+        }
+
         orderCreated.orderToken = orderCreated.orderToken + orderCreated.id
+        orderCreated.couponAmountTemp = couponAppliedTemp
+        orderCreated.couponApplied = couponApplied
+        orderCreated.originalOrderAmount = originalOrderAmount
 
         let user = await User.findOne({
             where: {
@@ -246,7 +267,7 @@ const getOrdersCount = async (req, res) => {
 
 const generateOrderObject = async (req, payload, razorpayDetails=null)=>{
    try{
-        let {addressDetails, selectedList,orderNotes,paymentMethod} = payload
+        let {addressDetails, selectedList,orderNotes,paymentMethod, couponCode} = payload
         let oldOrdersCount = await Order.count({
             where: {
                 userId: req.currentUser.id
@@ -285,6 +306,54 @@ const generateOrderObject = async (req, payload, razorpayDetails=null)=>{
         {
             throw new Error("Error in generate Order Object")
         }
+        let coupon
+        let couponApplied = false
+
+        if(couponCode){
+           coupon = await Coupon.findOne({
+                where: {
+                    couponName: couponCode,
+                    isDeleted: false
+                },
+                raw: true
+            })
+            if(!coupon){
+                throw new Error("Invalid Coupon")
+            }
+            if(moment().isAfter(coupon.expiryDate)){
+                throw new Error("The Coupon has been expired")
+            }
+            if(coupon.isValidOneTime){
+                let couponAssignment = await CouponAssignment.findOne({
+                    where: {
+                        couponId: coupon.id,
+                        userId: req.currentUser.id
+                    },
+                    raw: true
+                })
+                if(couponAssignment){
+                    throw new Error("The Coupon has been used")
+                }
+            }
+            if(coupon.products && coupon.products.length){
+                let couponProductIncluded = false
+                selectedList.every(product => {
+                    let productFound = coupon.products.find((e)=> e.productId == product.productId)
+                    if(productFound && productFound.productVariantId == product.productVariantId){
+                        if(product.count == 2){
+                            throw new Error("This Coupon is only valid for single unit of this product")
+                        }
+                        couponProductIncluded = true
+                        return false
+                    }
+                    return true
+                })
+                if(!couponProductIncluded){
+                    throw new Error("This Coupon is not applicable for this purchase")
+                }
+            }
+            couponApplied = true
+        }
 
         selectedList = selectedList.map((item)=>{
             let product = products.find((e)=> e.id == item.productId)
@@ -295,11 +364,18 @@ const generateOrderObject = async (req, payload, razorpayDetails=null)=>{
             if(!selectedProductVariant){
                 throw new Error("Error in generate Order Object")
             }
+            let isCouponProduct = false
+            if(coupon.products && coupon.products.length){
+                let couponProduct = coupon.products.find((e)=> e.productId == product.id && e.productVariantId == selectedProductVariant.id)
+                if(couponProduct){
+                    isCouponProduct = true
+                }
+            }
             let obj = {
                 productName: product.productName,
                 attributeCombination: item.attributeCombination,
                 count: item.count,
-                productDiscountPrice: selectedProductVariant.productDiscountPrice,
+                productDiscountPrice: isCouponProduct ? Math.round(selectedProductVariant.productDiscountPrice - selectedProductVariant.productDiscountPrice * coupon.couponValue / 100) : selectedProductVariant.productDiscountPrice,
                 productPrice: selectedProductVariant.productPrice,
                 productId: product.id,
                 productAttributeId: selectedProductVariant.id,
@@ -307,21 +383,27 @@ const generateOrderObject = async (req, payload, razorpayDetails=null)=>{
                 refNumber: selectedProductVariant.refNumber,
                 hsnNumber: product.hsnNumber
             }
-            orderAmount += selectedProductVariant.productDiscountPrice * item.count
+            orderAmount += isCouponProduct ? Math.round(selectedProductVariant.productDiscountPrice * item.count - selectedProductVariant.productDiscountPrice * item.count * coupon.couponValue / 100) : selectedProductVariant.productDiscountPrice * item.count
             orderAmountWithoutDiscount += selectedProductVariant.productPrice * item.count
             orderDetails.push(obj)
         })
 
-        let freeProducts = await getFreeProducts(orderAmount)
-        if(freeProducts.length){
-            orderDetails = [...orderDetails, ...freeProducts]
-        }
+        let couponAmountTemp = 0
+        let originalOrderAmount = orderAmount
 
+        if (coupon.products == null) {
+            couponAmountTemp = Math.round(orderAmount * coupon.couponValue / 100)
+            orderAmount = orderAmount - couponAmountTemp
+        }
         if(orderAmount < 500){
             deliveryCharges = 50
         }
 
         orderTotalAmount = orderAmount + deliveryCharges
+        let freeProducts = await getFreeProducts(orderTotalAmount)
+        if(freeProducts.length){
+            orderDetails = [...orderDetails, ...freeProducts]
+        }
 
         return {
             userId: req.currentUser.id,
@@ -332,12 +414,16 @@ const generateOrderObject = async (req, payload, razorpayDetails=null)=>{
             orderNotes,
             paymentMethod,
             orderAmount,
+            originalOrderAmount,
             orderAmountWithoutDiscount,
             deliveryCharges,
             orderTotalAmount,
             orderStatus,
             razorpayDetails,
             purchaseCount,
+            couponAmountTemp,
+            couponApplied,
+            couponId: coupon ? coupon.id : null,
             placedAt: moment().utc()
         }
    }
@@ -400,6 +486,14 @@ const paymentVerificationAndCreateOrder = async (req, res) => {
             // Database comes here
 
             let orderPayload = await generateOrderObject(req, payload, {razorpay_order_id, razorpay_payment_id, razorpay_signature})
+            let couponAppliedTemp = orderPayload.couponAmountTemp
+            let couponApplied = orderPayload.couponApplied
+            let couponId = orderPayload.couponId
+            let originalOrderAmount = orderPayload.originalOrderAmount
+            delete orderPayload.couponAmountTemp
+            delete orderPayload.couponApplied
+            delete orderPayload.couponId
+            delete orderPayload.originalOrderAmount
 
             orderCreated = await Order.create(orderPayload, {returning: true}).then(JSON.stringify).then(JSON.parse)
 
@@ -410,8 +504,19 @@ const paymentVerificationAndCreateOrder = async (req, res) => {
                     id: orderCreated.id
                 }
             })
+
+            if (couponApplied) {
+                await CouponAssignment.create({
+                    userId: orderCreated.userId,
+                    couponId: couponId,
+                    orderId: orderCreated.id
+                })
+            }
     
             orderCreated.orderToken = orderCreated.orderToken + orderCreated.id
+            orderCreated.couponAmountTemp = couponAppliedTemp
+            orderCreated.couponApplied = couponApplied
+            orderCreated.originalOrderAmount = originalOrderAmount
 
             let user = await User.findOne({
                 where: {
@@ -595,7 +700,7 @@ const pushOrderToShipRocket = async (order) => {
             // "giftwrap_charges": 0,
             // "transaction_charges": 0,
             // "total_discount": order?.orderAmountWithoutDiscount - order?.orderAmount,
-            "sub_total": order?.orderAmount,
+            "sub_total": order?.orderTotalAmount,
             "length": 27,
             "breadth": 15,
             "height": 10,

@@ -211,7 +211,7 @@ const generateMaharashtraInvoiceHtml = (order,type) => {
                     <td style="text-align:right;">9</td>
                     <td style="text-align:right;">%</td>
                     <td>&nbsp;</td>
-                    <td class="fw-bold" style="text-align:right;">${(18/118*order.orderAmount/2).toFixed(2)}</td>
+                    <td class="fw-bold" style="text-align:right;">${order.couponAmountTemp != 0 ? (18/118*order.originalOrderAmount/2).toFixed(2) : (18/118*order.orderAmount/2).toFixed(2)}</td>
                 </tr>
                 <tr>
                     <td class="w-auto">&nbsp;</td>
@@ -222,8 +222,20 @@ const generateMaharashtraInvoiceHtml = (order,type) => {
                     <td style="text-align:right;">9</td>
                     <td style="text-align:right;">%</td>
                     <td>&nbsp;</td>
-                    <td class="fw-bold" style="text-align:right;">${(18/118*order.orderAmount/2).toFixed(2)}</td>
+                    <td class="fw-bold" style="text-align:right;">${order.couponAmountTemp != 0 ? (18/118*order.originalOrderAmount/2).toFixed(2) : (18/118*order.orderAmount/2).toFixed(2)}</td>
                 </tr>
+                ${order.couponAmountTemp != 0 ? 
+               `<tr>
+                <td class="w-auto">&nbsp;</td>
+                <td>&nbsp;</td>
+                <td class="fw-bold"  style="text-align:right;">Coupon Applied</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td style="text-align:right;">&nbsp;</td>
+                <td style="text-align:right;">&nbsp;</td>
+                <td>&nbsp;</td>
+                <td class="fw-bold" style="text-align:right;">${order.couponAmountTemp}</td>
+                </tr>` : null}
                 <tr>
                 <td class="w-auto">&nbsp;</td>
                 <td>&nbsp;</td>
@@ -233,7 +245,7 @@ const generateMaharashtraInvoiceHtml = (order,type) => {
                 <td style="text-align:right;">&nbsp;</td>
                 <td style="text-align:right;">&nbsp;</td>
                 <td>&nbsp;</td>
-                <td class="fw-bold" style="text-align:right;">${(order.orderAmount - Math.round(order.orderAmount)).toFixed(2)}</td>
+                <td class="fw-bold" style="text-align:right;">${order.couponAmountTemp != 0 ? (order.originalOrderAmount - Math.round(order.originalOrderAmount)).toFixed(2) : (order.orderAmount - Math.round(order.orderAmount)).toFixed(2)}</td>
             </tr>
                 <tr>
                     <td class="w-auto">&nbsp;</td>
@@ -311,24 +323,24 @@ const generateMaharashtraInvoiceHtml = (order,type) => {
                         <td class="w-50">
                             <div class="d-flex w-100">
                                <div class="text-center fw-bold" style="width:50%">Total</div>
-                               <div class="fw-bold" style="width:25%">${(order.orderAmount * 100/118).toFixed(2)}</div>
+                               <div class="fw-bold" style="width:25%">${order.couponAmountTemp != 0 ?(order.originalOrderAmount * 100/118).toFixed(2) : (order.orderAmount * 100/118).toFixed(2)}</div>
                                <div class="fw-bold" style="width:25%">&nbsp;</div>
                             </div>
                         </td>
-                        <td class="fw-bold text-end" style="width:20%">${(18/118*order.orderAmount/2).toFixed(2)}</td>
+                        <td class="fw-bold text-end" style="width:20%">${order.couponAmountTemp != 0 ? (18/118*order.originalOrderAmount/2).toFixed(2) : (18/118*order.orderAmount/2).toFixed(2)}</td>
                         <td  style="width:18%">
                            <div class="d-flex">
                             <div class="text-center w-50">&nbsp;</div>
-                            <div class="text-end w-50 fw-bold" style="border-left:1px solid #000;">${(18/118*order.orderAmount/2).toFixed(2)}</div>
+                            <div class="text-end w-50 fw-bold" style="border-left:1px solid #000;">${order.couponAmountTemp != 0 ? (18/118*order.originalOrderAmount/2).toFixed(2) : (18/118*order.orderAmount/2).toFixed(2)}</div>
                            </div>
                         </td>
-                        <td class="fw-bold text-end">${(18/118*order.orderAmount).toFixed(2)}</td>
+                        <td class="fw-bold text-end">${order.couponAmountTemp != 0 ? (18/118*order.originalOrderAmount).toFixed(2) : (18/118*order.orderAmount).toFixed(2)}</td>
                     </tr>
                 </table>
                 <table class="w-100 mb-2">
                     <tr>
                         <td class="ps-2">
-                            <div>Tax Amount(in words) :  <span class="fw-bold">INR ${toWords.convert((18/118*order.orderAmount).toFixed(2))}</span></div>
+                            <div>Tax Amount(in words) :  <span class="fw-bold">INR ${order.couponAmountTemp != 0 ? toWords.convert((18/118*order.originalOrderAmount).toFixed(2)) : toWords.convert((18/118*order.orderAmount).toFixed(2))}</span></div>
                             <div class="d-flex w-100">
                                 <div class="w-50">
                                     <div>Comapny's GSTIN/UIN  : <span class="fw-bold">27AAMFD6389H1ZV</span></div>

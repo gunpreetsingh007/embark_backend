@@ -22,6 +22,7 @@ var addProductRoutes = require("./routes/addProduct.route")
 var bannerRoutes = require("./routes/banner.route")
 var popupRoutes = require("./routes/popup.route")
 var orderRoutes = require("./routes/order.route")
+var couponRoutes = require("./routes/coupon.route")
 
 // middlewares
 var { validateToken } = require('./middlewares/jwt');
@@ -101,6 +102,7 @@ const init = async () => {
     app.use('/api/banner',bannerRoutes);
     app.use('/api/popup',popupRoutes);
     app.use('/api/order',orderRoutes);
+    app.use('/api/coupon',couponRoutes);
 
 
     app.all('*', function (req, res) {

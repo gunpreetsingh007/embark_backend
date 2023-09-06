@@ -97,6 +97,7 @@ module.exports = function (sequelize, Sequelize) {
   });
   OrderSchema.associate = models => {
     OrderSchema.belongsTo(models.User, { foreignKey: 'userId', });
+    OrderSchema.hasOne(models.CouponAssignment, {foreignKey: "orderId"});
   }
   return OrderSchema;
 }
