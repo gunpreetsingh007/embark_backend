@@ -221,7 +221,7 @@ const generateOutsideMaharashtraInvoiceHtml = (order,type) => {
                 <td style="text-align:right;">&nbsp;</td>
                 <td>&nbsp;</td>
                 <td class="fw-bold" style="text-align:right;">${order.couponAmountTemp}</td>
-                </tr>` : null}
+                </tr>` : ""}
                 <tr>
                 <td class="w-auto">&nbsp;</td>
                 <td>&nbsp;</td>

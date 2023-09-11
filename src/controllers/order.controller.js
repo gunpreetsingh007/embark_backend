@@ -365,7 +365,7 @@ const generateOrderObject = async (req, payload, razorpayDetails=null)=>{
                 throw new Error("Error in generate Order Object")
             }
             let isCouponProduct = false
-            if(coupon.products && coupon.products.length){
+            if(couponApplied && coupon.products && coupon.products.length){
                 let couponProduct = coupon.products.find((e)=> e.productId == product.id && e.productVariantId == selectedProductVariant.id)
                 if(couponProduct){
                     isCouponProduct = true
@@ -391,7 +391,7 @@ const generateOrderObject = async (req, payload, razorpayDetails=null)=>{
         let couponAmountTemp = 0
         let originalOrderAmount = orderAmount
 
-        if (coupon.products == null) {
+        if (couponApplied && coupon.products == null) {
             couponAmountTemp = Math.round(orderAmount * coupon.couponValue / 100)
             orderAmount = orderAmount - couponAmountTemp
         }
