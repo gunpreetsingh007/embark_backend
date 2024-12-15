@@ -76,7 +76,7 @@ const createOrder = async (req, res) => {
             raw: true
         })
 
-        await pushOrderToShipRocket(orderCreated)
+        // await pushOrderToShipRocket(orderCreated)
         
         sendEmail(orderCreated, user.firstName, user.lastName)
 
@@ -526,7 +526,7 @@ const paymentVerificationAndCreateOrder = async (req, res) => {
                 raw: true
             })
     
-            await pushOrderToShipRocket(orderCreated)
+            // await pushOrderToShipRocket(orderCreated)
             
             sendEmail(orderCreated, user.firstName, user.lastName)
     
